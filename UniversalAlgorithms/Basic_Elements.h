@@ -1,0 +1,128 @@
+﻿#pragma once
+#include <locale.h>
+#include <stdio.h>
+#include <conio.h>
+#include <string>
+#include <stdlib.h>
+#include <iostream>
+#include <vector>
+
+using namespace std;
+
+//----------------------------Классы-------------------------------
+
+class ItemSymb {
+
+	bool term;
+	string content;
+
+public:
+
+	ItemSymb(): term(true), content("") {}		// по умолчанию создаётся терминал (символы)
+	ItemSymb(const string inp_cont, bool inp_term = true) : content(inp_cont), term(inp_term) {}
+
+	bool IsTerm() const { return term; }
+
+	void SetSymb(const string & inp_cont, bool inp_term = true);
+	void SetSymb(const char & inp_cont, bool inp_term = true);
+
+	operator string() const { return content; }
+	bool operator == (const ItemSymb& c2) const { return content == c2.content; }
+	bool operator != (const ItemSymb& c2) const { return content != c2.content; }
+};
+
+//-----------------------------------------------------------------
+
+class ItemString {
+
+	vector<ItemSymb> cur_string;
+
+public:
+
+	ItemString() {}
+	ItemString(const vector<ItemSymb> & inp_str) : cur_string(inp_str) {}
+	ItemString(const string & orig_str);	// первоначальная установка строки
+	
+	void SetString(const vector<ItemSymb> & inp_str) { cur_string = inp_str; }
+	int Length() { return cur_string.size(); }
+	void PrintString();
+
+	void AddSymb(const ItemSymb & inp_symb, const int pos = -1) 
+	{ 
+		if (pos == -1) {
+			cur_string.push_back(inp_symb);
+		}
+		else {
+			cur_string.insert(cur_string.begin() + pos, inp_symb);
+		}
+
+	}
+
+	void DeleteSymb(const int & first, const int & quantity);
+	
+	operator string() const; 
+	ItemSymb &operator[] (int i) { return cur_string[i]; }
+	bool operator==(const ItemString& another_str) const { return (cur_string == another_str.cur_string); }
+	bool operator!=(const ItemString& another_str) const { return (cur_string != another_str.cur_string); }
+};
+
+
+
+enum class TypeOfAlg 
+{
+	LTOR,
+	TTOD,
+	LLK_TTOD,
+	LRK_STACK
+};
+
+enum class ModeOfCWin 
+{
+	CWBEGIN,
+	CWPARSE,
+	CWPARSESTARTED,
+	CWPARSEENDED,
+	CWRESET,
+	CWTEST
+};
+
+enum class Color
+{
+	RED,
+	BLACK,
+	GREEN
+};
+
+enum class TypeOfComment
+{
+	INFO,
+	WRONG_RULE,
+	CORRECT_RULE,
+	DEAD_END,
+	PARSE_CORRECT,
+	PARSE_INCORRECT,
+	HYPOTHESIS,
+	ACTION
+};
+
+enum TypeOfTtoDLine
+{
+	STATEMENT,
+	ROLLB_POSS,
+	ROLLB_IMPOSS,
+	RULE_NOT_FIT,
+	RULE_FIT,
+	END_LINE,
+	WRONG_SYMB
+};
+
+enum TypeOfRelation
+{
+	CARRY,		// перенос
+	CONV,		// свёртка
+	CONV_BR,	// свёртка скобок
+	ID_ERROR,
+	OP_ERROR,
+	ERROR,
+	EXIT
+};
