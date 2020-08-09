@@ -39,8 +39,15 @@ struct RuleNum {
 	int fir_num; 
 	int sec_num; 
 
+	bool IsFound() { return ((fir_num > -1) and (sec_num > -1)); }
 	bool operator == (const RuleNum& other_rule) const {
 		return this->fir_num == other_rule.fir_num && this->sec_num == other_rule.sec_num;
+	}
+	bool operator != (const RuleNum& other_rule) const {
+		return this->fir_num != other_rule.fir_num || this->sec_num != other_rule.sec_num;
+	}
+	const RuleNum operator+(const RuleNum& another) {
+		return RuleNum({fir_num + another.fir_num, sec_num + another.sec_num});
 	}
 };
 
@@ -80,6 +87,40 @@ public:
 };
 
 //-----------------------------------------------------------------
+class LtoR_Line_u : public RecordLine {
+
+private:
+	RuleNum offset;
+	TypeOfLtoRLine status;
+	unsigned entry_point;
+public:
+
+	void SetLine(const string& inp_str, const RuleNum& inp_rnum,
+		const unsigned inp_entry,
+		const TypeOfLtoRLine inp_status = TypeOfLtoRLine::REGULAR_LINE, 
+		const RuleNum& inp_offset = {0, 0});
+	void PrintLine() override;
+	vector<string>  GetLine() override;
+
+	TypeOfAlg GetType() override;
+
+	void MarkAsDeadEndBranch() { status = TypeOfLtoRLine::DEAD_END_BRANCH; }
+
+	const TypeOfLtoRLine GetStatus() { return status; }
+	const RuleNum& GetOffset() { return offset; }
+	const unsigned GetEntryPoint() { return entry_point; }
+
+	LtoR_Line_u& operator=(LtoR_Line_u& source)//перегрузка
+	{
+		cur_string = source.GetCurString();
+		rule_num = source.GetRuleNum();
+		status = source.GetStatus();
+		offset = source.GetOffset();
+		entry_point = source.GetEntryPoint();
+		return *this;//возвращаем ссылку на текущий объект
+	}
+};
+
 
 class TtoD_Line : public RecordLine {
 

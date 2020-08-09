@@ -15,16 +15,19 @@ class ItemSymb {
 
 	bool term;
 	string content;
+	bool axiom;
 
 public:
 
-	ItemSymb(): term(true), content("") {}		// по умолчанию создаётся терминал (символы)
-	ItemSymb(const string inp_cont, bool inp_term = true) : content(inp_cont), term(inp_term) {}
+	ItemSymb(): term(true), content(""), axiom(false) {}		// по умолчанию создаётся терминал (символы)
+	ItemSymb(const string inp_cont, bool inp_term = true, bool inp_axiom = false) : content(inp_cont), term(inp_term), axiom(inp_axiom)  {}
 
 	bool IsTerm() const { return term; }
+	bool IsAxiom() const { return axiom; }
 
-	void SetSymb(const string & inp_cont, bool inp_term = true);
-	void SetSymb(const char & inp_cont, bool inp_term = true);
+	void SetSymb(const string & inp_cont, bool inp_term = true, bool inp_axiom = false);
+	void SetSymb(const char & inp_cont, bool inp_term = true, bool inp_axiom = false);
+	void SetAsAxiom() { axiom = true; };
 
 	operator string() const { return content; }
 	bool operator == (const ItemSymb& c2) const { return content == c2.content; }
@@ -103,6 +106,15 @@ enum class TypeOfComment
 	PARSE_INCORRECT,
 	HYPOTHESIS,
 	ACTION
+};
+
+enum TypeOfLtoRLine
+{
+	REGULAR_LINE,
+	DEAD_END_BRANCH,
+	DEAD_END,
+	PARSED_END,
+	NOT_PARSED_END
 };
 
 enum TypeOfTtoDLine

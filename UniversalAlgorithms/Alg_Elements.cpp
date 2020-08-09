@@ -90,6 +90,92 @@ TypeOfAlg LtoR_Line::GetType()
 	return TypeOfAlg::LTOR;
 }
 
+//---------------------LtoR_u_Line---------------------
+
+void LtoR_Line_u::SetLine(const string& inp_str, const RuleNum& inp_rnum,
+						const unsigned inp_entry,
+						const TypeOfLtoRLine inp_status, const RuleNum& inp_offset)
+{
+	cur_string = inp_str;
+	rule_num = inp_rnum;
+	entry_point = inp_entry;
+	status = inp_status;
+	offset = inp_offset;
+}
+
+void LtoR_Line_u::PrintLine()
+{
+	string str_for_print;
+	for (int i = 0; i < cur_string.size(); i++) {
+		if (cur_string[i] != '\n') {
+			str_for_print += cur_string[i];
+		}
+	}
+
+	cout << "Строка: " << str_for_print;
+	switch (status)
+	{
+	case REGULAR_LINE:
+		cout << " Правило: " << char(rule_num.fir_num + 224) << rule_num.sec_num + 1 << endl;
+		break;
+	case DEAD_END_BRANCH:
+		cout << " Правило: " << char(rule_num.fir_num + 224) << rule_num.sec_num + 1 << " \u00D8" << endl;
+		break;
+	case DEAD_END:
+		cout << " Тупик " <<  endl;
+		break;
+	case PARSED_END:
+		cout << " Конец " << endl;
+		break;
+	case NOT_PARSED_END:
+		cout << " Разбор невозможен " << endl;
+		break;
+	default:
+		break;
+	}
+}
+
+vector<string> LtoR_Line_u::GetLine()
+{
+	vector<string> line;
+	string cur_string = GetCurString();
+	string str_for_print;
+
+	for (int i = 0; i < cur_string.size(); i++) {
+		if (cur_string[i] != '\n') {
+			str_for_print += cur_string[i];
+		}
+	}
+	line.push_back(str_for_print);
+
+	RuleNum rule_num = GetRuleNum();
+
+	switch (status)
+	{
+	case REGULAR_LINE:
+		line.push_back(char(rule_num.fir_num + 224) + to_string(rule_num.sec_num + 1));
+		break;
+	case DEAD_END_BRANCH:
+		line.push_back(char(rule_num.fir_num + 224) + to_string(rule_num.sec_num + 1));
+		break;
+	case DEAD_END:
+		line.push_back("Тупик!");
+		break;
+	case PARSED_END:
+		line.push_back("Конец разбора");
+		break;
+	case NOT_PARSED_END:
+		line.push_back("Разбор дальше невозможен!");
+		break;
+	}
+
+	return line;
+}
+
+TypeOfAlg LtoR_Line_u::GetType()
+{
+	return TypeOfAlg::LTOR;;
+}
 
 
 //---------------------ParseLog---------------------
@@ -124,6 +210,7 @@ TypeOfAlg TtoD_Line::GetType()
 {
 	return TypeOfAlg::TTOD;
 }
+
 
 //---------------------TtoD_Line---------------------
 
@@ -460,3 +547,4 @@ void LRk_Stack_Line::PrintLine()
 	cout << endl;
 
 }
+

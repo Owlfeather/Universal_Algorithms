@@ -1,15 +1,17 @@
 ﻿#include "Basic_Elements.h"
 //---------------------ItemSymb---------------------
-void ItemSymb::SetSymb(const string & inp_cont, bool inp_term)
+void ItemSymb::SetSymb(const string & inp_cont, bool inp_term, bool inp_axiom)
 {
 	content = inp_cont;
 	term = inp_term;
+	axiom = inp_axiom;
 }
 
-void ItemSymb::SetSymb(const char & inp_cont, bool inp_term)
+void ItemSymb::SetSymb(const char & inp_cont, bool inp_term, bool inp_axiom)
 {
 	content = { inp_cont };
 	term = inp_term;
+	axiom = inp_axiom;
 }
 
 //--------------------ItemString--------------------
