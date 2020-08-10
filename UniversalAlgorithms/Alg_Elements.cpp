@@ -94,13 +94,15 @@ TypeOfAlg LtoR_Line::GetType()
 
 void LtoR_Line_u::SetLine(const string& inp_str, const RuleNum& inp_rnum,
 						const unsigned inp_entry,
-						const TypeOfLtoRLine inp_status, const RuleNum& inp_offset)
+						const TypeOfLtoRLine inp_status, const RuleNum& inp_offset,
+						const int inp_entry_p_off)
 {
 	cur_string = inp_str;
 	rule_num = inp_rnum;
 	entry_point = inp_entry;
 	status = inp_status;
 	offset = inp_offset;
+	entry_point_offset = inp_entry_p_off;
 }
 
 void LtoR_Line_u::PrintLine()
@@ -180,11 +182,19 @@ TypeOfAlg LtoR_Line_u::GetType()
 
 //---------------------ParseLog---------------------
 
-void ParseLog::PrintLogltoR() 
+void ParseLog::PrintLogLtoR() 
 {
 	cout << endl << endl << "Лог:" << endl;
 	for (int i = 0; i < records.size(); i++) {
 		dynamic_cast<LtoR_Line *>(records[i])->PrintLine();
+	}
+}
+
+void ParseLog::PrintLogLtoR_u()
+{
+	cout << endl << endl << "Лог:" << endl;
+	for (int i = 0; i < records.size(); i++) {
+		dynamic_cast<LtoR_Line_u*>(records[i])->PrintLine();
 	}
 }
 

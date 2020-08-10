@@ -142,18 +142,44 @@ RuleNum LtoR_MethodAlg_u::RollbackAndGetNextRule()
 {
 	comment_line.clear();
 	comment_line = "   Тупиковая ситуация, необходим откат назад\n";
-	comment_line += "   Производится откат к позиции " + to_string(parsing_log.Size() - 2) + " разбора";
+	comment_line += "   Производится откат к позиции " + to_string(rollback_step) + " разбора";
 	cout << comment_line;
 	///comments_model->AddRecordLine(comment_line, TypeOfComment::DEAD_END);
 
-	parsing_str = RestoreStringFromLog((*(parsing_log[parsing_log.Size() - 2])).GetCurString());
-	RuleNum prev_rule = (*(parsing_log[parsing_log.Size() - 2])).GetRuleNum();
+	LtoR_Line_u current_line;
+	unsigned entry_point;
+	RuleNum prev_rule;
+	RuleNum last_rule = { rules.size() - 1, rules[rules.size() - 1].RightSize() - 1 };
+
+	current_line = *(dynamic_cast<LtoR_Line_u*>(parsing_log[rollback_step]));
+	parsing_str = current_line.GetCurString();
+
+	if (current_line.HasNoOffset()) {
+		prev_rule = current_line.GetRuleNum();
+		entry_point = current_line.GetEntryPoint();
+	}
+	else {
+		prev_rule = (current_line.GetRuleNum() + current_line.GetOffset());
+		entry_point = current_line.GetOffsetEntryPoint();
+	}
 
 	parsing_item = rules[prev_rule.fir_num][prev_rule.sec_num];
+	
+	if (prev_rule != last_rule) {
 
-	if (prev_rule.sec_num == rules[prev_rule.fir_num].RightSize() - 1) prev_rule.fir_num++;
-	else prev_rule.sec_num++;
-	return prev_rule;
+		if ((rules[prev_rule.fir_num].RightSize() - 1) > prev_rule.sec_num) {
+			prev_rule.sec_num++;
+		}
+		else if ((rules.size() - 1) > prev_rule.fir_num) {
+			prev_rule.fir_num++;
+			prev_rule.sec_num = 0;
+		}
+		return prev_rule;
+	}
+	else {
+		ChangeParsingItem(); // всегда true здесь, поскольку была проверка в StepCanBeTried()
+		return { 0, 0 };
+	}
 
 }
 
@@ -202,6 +228,11 @@ ItemString LtoR_MethodAlg_u::RestoreStringFromLog(const string& log_str)
 	return restored_str;
 }
 
+void LtoR_MethodAlg_u::MarkNotParsedEnd()
+{
+	dynamic_cast<LtoR_Line_u*>(parsing_log[parsing_log.Size() - 1])->MarkAsNotParsedEnd();
+}
+
 bool LtoR_MethodAlg_u::AxiomIsRecognized()
 {
 	if ((parsing_str.Length() == 1)
@@ -217,6 +248,16 @@ void LtoR_MethodAlg_u::SetStartOfSearch()
 	parsing_item.SetString({ parsing_str[entry_point] });
 }
 
+void LtoR_MethodAlg_u::AddOffsetToRollbackStep(const RuleNum& rule)
+{
+	RuleNum offset = { 0, 0 }, new_rule = rule;
+	RuleNum prev_rule = dynamic_cast<LtoR_Line_u*>(parsing_log[rollback_step])->GetRuleNum();
+	offset = new_rule - prev_rule;
+
+	dynamic_cast<LtoR_Line_u*>(parsing_log[rollback_step])->SetNewEntryPoint();
+	dynamic_cast<LtoR_Line_u*>(parsing_log[rollback_step])->SetOffset(offset);
+}
+
 
 void LtoR_MethodAlg_u::TransformAccordingRule(const RuleNum& rule)
 {
@@ -230,44 +271,83 @@ void LtoR_MethodAlg_u::TransformAccordingRule(const RuleNum& rule)
 
 int LtoR_MethodAlg_u::CheckForRollback()
 {
-	LtoR_Line_u current_line;
-	ItemString current_string, current_item;
-	RuleNum next_rule;
-	RuleNum last_rule = {rules.size() - 1, rules[rules.size() - 1].RightSize() - 1};
+	unsigned num_of_step = parsing_log.Size() - 2; // начинаем с последнего нетупикового шага
 
-	for (unsigned i = parsing_log.Size() - 1; i > -1; i--) {
-
-		current_line = *(dynamic_cast<LtoR_Line_u*>(parsing_log[i]));
-		next_rule = current_line.GetRuleNum() + current_line.GetOffset();
-		current_string = RestoreStringFromLog(current_line.GetCurString());
-
-		if (current_line.GetEntryPoint() == current_string.Length() - 1) {
-			dynamic_cast<LtoR_Line_u*>(parsing_log[i])->MarkAsDeadEndBranch();
+	while (num_of_step > -1) { // пока не просмотрены все шаги
+		if (StepCanBeTried(num_of_step)) {
+			// откат выполнить можно
+			SetRollbackFlag(); // заходим в режим отката
+			return num_of_step;
 		}
 		else {
-			current_item = rules[next_rule.fir_num][next_rule.sec_num];
-			//if (next_rule != last_rule) {
-		//
-		//	if ((rules[next_rule.fir_num].RightSize() - 1) > next_rule.sec_num) {
-		//		next_rule.sec_num++;
-		//	}
-		//	else if ((rules.size() - 1) > next_rule.fir_num) {
-		//		next_rule.fir_num++;
-		//		next_rule.sec_num = 0;
-		//	}
-		//	// проверить начиная с next_rule
-		//}
-		//// пометить как тупиковую ветвь и искать дальше
+			dynamic_cast<LtoR_Line_u*>(parsing_log[num_of_step])->MarkAsDeadEndBranch();
+			num_of_step--;
 		}
-
-		
 	}
+
+
+	//for (unsigned i = parsing_log.Size() - 1; i > -1; i--) {
+
+	//	current_line = *(dynamic_cast<LtoR_Line_u*>(parsing_log[i]));
+	//	next_rule = current_line.GetRuleNum() + current_line.GetOffset();
+	//	current_string = RestoreStringFromLog(current_line.GetCurString());
+
+	//	if (current_line.GetEntryPoint() == current_string.Length() - 1) {
+	//		dynamic_cast<LtoR_Line_u*>(parsing_log[i])->MarkAsDeadEndBranch();
+	//	}
+	//	else {
+	//		current_item = rules[next_rule.fir_num][next_rule.sec_num];
+	//		//if (next_rule != last_rule) {
+	//	//
+	//	//	if ((rules[next_rule.fir_num].RightSize() - 1) > next_rule.sec_num) {
+	//	//		next_rule.sec_num++;
+	//	//	}
+	//	//	else if ((rules.size() - 1) > next_rule.fir_num) {
+	//	//		next_rule.fir_num++;
+	//	//		next_rule.sec_num = 0;
+	//	//	}
+	//	//	// проверить начиная с next_rule
+	//	//}
+	//	//// пометить как тупиковую ветвь и искать дальше
+	//	}	
+	//}
 	return -1; // возврат нельзя осуществить
+}
+
+bool LtoR_MethodAlg_u::StepCanBeTried(unsigned num_of_step)
+{
+	LtoR_Line_u current_line;
+	ItemString current_string;
+	unsigned entry_point;
+	TypeOfLtoRLine status;
+
+	current_line = *(dynamic_cast<LtoR_Line_u*>(parsing_log[num_of_step]));
+	status = current_line.GetStatus();
+
+	if ((status == TypeOfLtoRLine::DEAD_END)
+		|| (status == TypeOfLtoRLine::DEAD_END_BRANCH)) {
+		return false;
+	}
+
+	if (current_line.HasNoOffset()) {
+		entry_point = current_line.GetEntryPoint();
+	}
+	else {
+		entry_point = current_line.GetOffsetEntryPoint();
+	}
+
+	if (entry_point == current_string.Length() - 1) {
+		return false; // на шаге были рассмотрены все правила
+	}
+	else {
+		return true; // можно попробовать вернуться к этому шагу
+	}
 }
 
 bool LtoR_MethodAlg_u::DoParse()
 {
 	bool parsing_is_over = false;
+	ClearRollbackFlag();
 	SetStartOfSearch();
 	RuleNum next_rule = { 0, 0 }, 
 			rule;
@@ -277,6 +357,10 @@ bool LtoR_MethodAlg_u::DoParse()
 		rule = FindSuitableRule(next_rule);
 
 		if (rule.IsFound()) {
+			if (ParsingIsOnRollbackBranch()) {
+				ClearRollbackFlag();
+				AddOffsetToRollbackStep(rule);
+			}
 			WriteToLog(rule);
 			TransformAccordingRule(rule);
 			SetStartOfSearch();
@@ -289,11 +373,20 @@ bool LtoR_MethodAlg_u::DoParse()
 		else {
 			if (!ChangeParsingItem()) { // тупиковая строка
 				WriteToLog(rule, TypeOfLtoRLine::DEAD_END);
-				// смотрим, возможен ли откат
+				rollback_step = CheckForRollback();
+				if (rollback_step != -1) { // есть возможность возврата
+					next_rule = RollbackAndGetNextRule();
+				}
+				else {
+					MarkNotParsedEnd();
+					parsing_is_over = true;
+				}
 			}
-
 		}
 	}
+	//////////////////
+	cout << endl <<"***РАЗМЕР_ЛОГА=" << parsing_log.Size();
 
+	parsing_log.PrintLogLtoR_u();
 	return false;
 }

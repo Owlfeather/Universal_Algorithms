@@ -1,5 +1,6 @@
 #include "Basic_Elements.h"
 #include "Algorithm_LtoR.h"
+#include "Algorithm_LtoR_u.h"
 //#include "Algorithm_TtoD.h"
 #include "Alg_Elements.h"
 //#include "Algorithm_LLk_TtoD.h"
@@ -12,8 +13,16 @@ int main() {
 	setlocale(0, "russian");
 	cout << "Запуск!" << endl;
 
+	string input_str = "-45";
 	//string input_str = "d+c*(a+b)";
-	string input_str = "(Udh-(hdhdh*(((tuh)))))";
+	//string input_str = "(Udh-(hdhdh*(((tuh)))))";
+
+	LtoR_MethodAlg_u alg1;
+	alg1.SetRulesOfAlg();
+	alg1.SetParsingStr(input_str);
+	alg1.DoParse();
+	//alg1.PrintLogLtoR();
+
 
 	/*
 	LtoR_MethodAlg alg1;

@@ -52,7 +52,6 @@ public:
 	string GetParsingString() {return string(parsing_str);}
 
 
-
 	virtual void SetParsingStr(ItemString inp_str) = 0;
 	virtual void SetRulesOfAlg() = 0;
 	virtual bool DoParse() = 0;

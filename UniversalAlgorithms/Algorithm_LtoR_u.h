@@ -24,18 +24,23 @@ private:
 
 	unsigned entry_point;
 	unsigned max_quantity;
+	bool rollback_flag;
+	int rollback_step;
 	unsigned FindMaxQuantity();
 	bool ChangeParsingItem();
 	RuleNum FindSuitableRule(const RuleNum rulenum = { 0, 0 });
 	bool AxiomIsRecognized();
+	bool ParsingIsOnRollbackBranch() { return rollback_flag; }
+	void ClearRollbackFlag() { rollback_flag = false; }
+	void SetRollbackFlag() { rollback_flag = true; }
 	void SetStartOfSearch();
+
+	void AddOffsetToRollbackStep(const RuleNum& rule);
 
 	int CheckForRollback();
 
-	//RuleNum FindRuleNum(const RuleNum& rulenum);
-	//RuleNum GetNextRule();
+	bool StepCanBeTried(unsigned num_of_step);
 
-	//void TransformAccordingRule(const ItemSymb& substr, const unsigned start, const unsigned num_of_cleaned);
 	void TransformAccordingRule(const RuleNum& rule);
 	RuleNum RollbackAndGetNextRule();
 
@@ -43,6 +48,9 @@ private:
 		const TypeOfLtoRLine inp_status = TypeOfLtoRLine::REGULAR_LINE,
 		const RuleNum& inp_offset = { 0, 0 });
 	ItemString RestoreStringFromLog(const string& log_str);
+
+	void MarkNotParsedEnd();
+
 
 };
 

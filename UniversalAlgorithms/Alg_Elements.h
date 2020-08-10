@@ -49,6 +49,9 @@ struct RuleNum {
 	const RuleNum operator+(const RuleNum& another) {
 		return RuleNum({fir_num + another.fir_num, sec_num + another.sec_num});
 	}
+	const RuleNum operator-(const RuleNum& another) {
+		return RuleNum({ fir_num - another.fir_num, sec_num - another.sec_num });
+	}
 };
 
 //-----------------------------------------------------------------
@@ -93,22 +96,31 @@ private:
 	RuleNum offset;
 	TypeOfLtoRLine status;
 	unsigned entry_point;
+	int entry_point_offset;
 public:
 
 	void SetLine(const string& inp_str, const RuleNum& inp_rnum,
 		const unsigned inp_entry,
 		const TypeOfLtoRLine inp_status = TypeOfLtoRLine::REGULAR_LINE, 
-		const RuleNum& inp_offset = {0, 0});
+		const RuleNum& inp_offset = {0, 0},
+		const int inp_entry_p_off = -1);
 	void PrintLine() override;
 	vector<string>  GetLine() override;
 
 	TypeOfAlg GetType() override;
 
 	void MarkAsDeadEndBranch() { status = TypeOfLtoRLine::DEAD_END_BRANCH; }
+	void MarkAsDeadEnd() { status = TypeOfLtoRLine::DEAD_END; }
+	void MarkAsNotParsedEnd() { status = TypeOfLtoRLine::NOT_PARSED_END; }
+	void SetNewEntryPoint() { entry_point_offset = entry_point;	}
+	void SetOffset(const RuleNum& inp_rnum) { offset = inp_rnum; }
 
 	const TypeOfLtoRLine GetStatus() { return status; }
 	const RuleNum& GetOffset() { return offset; }
 	const unsigned GetEntryPoint() { return entry_point; }
+	const int GetOffsetEntryPoint() { return entry_point_offset; }
+	bool HasNoOffset() { return ((offset == RuleNum{0, 0}) and (entry_point_offset == -1)); }
+
 
 	LtoR_Line_u& operator=(LtoR_Line_u& source)//перегрузка
 	{
@@ -117,6 +129,7 @@ public:
 		status = source.GetStatus();
 		offset = source.GetOffset();
 		entry_point = source.GetEntryPoint();
+		entry_point_offset = source.GetOffsetEntryPoint();
 		return *this;//возвращаем ссылку на текущий объект
 	}
 };
@@ -212,7 +225,8 @@ public:
 
 	void AddRecordLine(RecordLine *inp_rec) { records.push_back(inp_rec); }
 	int Size() { return records.size(); }
-	void PrintLogltoR();
+	void PrintLogLtoR();
+	void PrintLogLtoR_u();
 	void PrintLogTtoD();
 	void PrintLogLLk();
 

@@ -332,7 +332,7 @@ bool LtoR_MethodAlg::DoParse()
 			// в начало
 		}
 	}
-	parsing_log.PrintLogltoR();
+	parsing_log.PrintLogLtoR();
 	return true;
 }
 
