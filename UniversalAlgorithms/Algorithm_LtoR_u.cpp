@@ -68,8 +68,42 @@ void LtoR_MethodAlg_u::SetRulesOfAlg()
 		rules[i].PrintRule();
 		cout << endl;
 	}
+
+	non_collapsible_axiom = DefineAxiomCollapsibility();
+	if (non_collapsible_axiom) {
+		cout << endl << "Несворачиваемая аксиома" << endl;
+	}
+	else {
+		cout << endl << "Сворачиваемая аксиома" << endl;
+	}
 }
 
+
+bool LtoR_MethodAlg_u::DefineAxiomCollapsibility()
+{
+	unsigned repeats_of_axiom = 0;
+	for (ItemRule rule : rules)
+	{
+		if (rule.GetLeft().IsAxiom()) {
+			repeats_of_axiom++;
+		}
+		for (ItemString option : rule.GetRight())
+		{
+			for (ItemSymb symb : option.GetSymbs())
+			{
+				if (symb.IsAxiom()) {
+					repeats_of_axiom++;
+				}
+			}
+		}
+	}
+	if (repeats_of_axiom > 1) {
+		return false;
+	}
+	else {
+		return true;
+	}
+}
 
 unsigned LtoR_MethodAlg_u::FindMaxQuantity()
 {
@@ -115,23 +149,29 @@ RuleNum LtoR_MethodAlg_u::FindSuitableRule(const RuleNum rulenum)
 	unsigned rules_length = rules.size();
 	unsigned options_length;
 
+	cout << endl << "Поисковая конструкция: ";
+	parsing_item.PrintString();
+	cout << endl << "   его длина: " << to_string(parsing_item.Length());
+
 	for (auto i = rulenum.fir_num; i < rules_length; i++) {
 		options_length = rules[i].RightSize();
 		for (auto j = rulenum.sec_num; j < options_length; j++) {
 			if (parsing_item == rules[i][j]) {
-				comment_line.clear();
-				comment_line = "   Правило " + (char(i + 224)) + to_string((j + 1)) + " подошло!";
-				cout << comment_line;
+				//comment_line.clear();
+				//comment_line = "   Правило " + (char(i + 224)) + to_string((j + 1)) + " подошло!";
+				//cout << comment_line;
+
+				cout << endl << "Правило " << char(i + 224) << to_string((j + 1)) << " подошло!" << endl;
 				return RuleNum{ i, j };
 			}
 			else {
-				comment_line.clear();
-				comment_line = "   Правило " + (char(i + 224)) + to_string((j + 1)) + " не подошло";
-				cout << comment_line;
+				//comment_line.clear();
+				//comment_line = "   Правило " + (char(i + 224)) + to_string((j + 1)) + " не подошло";
+				///cout << comment_line;
 			}
 		}
 	}
-
+	cout << endl << "Подходящих правил не найдено" << endl;
 	return RuleNum{ -1, -1 }; // подходящих правил не найдено
 }
 
@@ -147,12 +187,12 @@ RuleNum LtoR_MethodAlg_u::RollbackAndGetNextRule()
 	///comments_model->AddRecordLine(comment_line, TypeOfComment::DEAD_END);
 
 	LtoR_Line_u current_line;
-	unsigned entry_point;
+	//unsigned entry_point;
 	RuleNum prev_rule;
 	RuleNum last_rule = { rules.size() - 1, rules[rules.size() - 1].RightSize() - 1 };
 
 	current_line = *(dynamic_cast<LtoR_Line_u*>(parsing_log[rollback_step]));
-	parsing_str = current_line.GetCurString();
+	parsing_str = RestoreStringFromLog(current_line.GetCurString());
 
 	if (current_line.HasNoOffset()) {
 		prev_rule = current_line.GetRuleNum();
@@ -165,6 +205,17 @@ RuleNum LtoR_MethodAlg_u::RollbackAndGetNextRule()
 
 	parsing_item = rules[prev_rule.fir_num][prev_rule.sec_num];
 	
+	//==============================================
+	cout << endl << "   Разбираемая строка: ";
+	parsing_str.PrintString();
+	cout << endl;
+	cout  << "   Поисковый элемент: ";
+	parsing_item.PrintString();
+	cout << "   его длина: " << to_string(parsing_item.Length());
+	cout << endl;
+	//==============================================
+
+
 	if (prev_rule != last_rule) {
 
 		if ((rules[prev_rule.fir_num].RightSize() - 1) > prev_rule.sec_num) {
@@ -228,9 +279,23 @@ ItemString LtoR_MethodAlg_u::RestoreStringFromLog(const string& log_str)
 	return restored_str;
 }
 
-void LtoR_MethodAlg_u::MarkNotParsedEnd()
+void LtoR_MethodAlg_u::MarkLastStepInLogAs(TypeOfLtoRLine mark_status)
 {
-	dynamic_cast<LtoR_Line_u*>(parsing_log[parsing_log.Size() - 1])->MarkAsNotParsedEnd();
+	switch (mark_status)
+	{
+	case REGULAR_LINE:
+		break;
+	case DEAD_END_BRANCH:
+		break;
+	case DEAD_END:
+		dynamic_cast<LtoR_Line_u*>(parsing_log[parsing_log.Size() - 1])->MarkAsDeadEnd();
+		break;
+	case PARSED_END:
+		break;
+	case NOT_PARSED_END:
+		dynamic_cast<LtoR_Line_u*>(parsing_log[parsing_log.Size() - 1])->MarkAsNotParsedEnd();
+		break;
+	}
 }
 
 bool LtoR_MethodAlg_u::AxiomIsRecognized()
@@ -240,6 +305,18 @@ bool LtoR_MethodAlg_u::AxiomIsRecognized()
 		return true;
 	else
 		return false;
+}
+
+bool LtoR_MethodAlg_u::GetAxiomInParsingString()
+{
+	bool get_axiom = false;
+	for (ItemSymb symb : parsing_str.GetSymbs())
+	{
+		if (symb.IsAxiom()) {
+			get_axiom = true;
+		}
+	}
+	return get_axiom;
 }
 
 void LtoR_MethodAlg_u::SetStartOfSearch()
@@ -254,26 +331,43 @@ void LtoR_MethodAlg_u::AddOffsetToRollbackStep(const RuleNum& rule)
 	RuleNum prev_rule = dynamic_cast<LtoR_Line_u*>(parsing_log[rollback_step])->GetRuleNum();
 	offset = new_rule - prev_rule;
 
-	dynamic_cast<LtoR_Line_u*>(parsing_log[rollback_step])->SetNewEntryPoint();
+	dynamic_cast<LtoR_Line_u*>(parsing_log[rollback_step])->SetNewEntryPoint(entry_point);
 	dynamic_cast<LtoR_Line_u*>(parsing_log[rollback_step])->SetOffset(offset);
 }
 
 
 void LtoR_MethodAlg_u::TransformAccordingRule(const RuleNum& rule)
 {
+	//==============================================
+	cout << "   Старая строка разбора: ";
+	parsing_str.PrintString();
+	cout << endl;
+	cout << "   Сворачиваем ";
+	parsing_item.PrintString();
+	cout << " в " << string(rules[rule.fir_num].GetLeft()) << endl;
+	//==============================================
+
+
 	parsing_str[entry_point] = rules[rule.fir_num].GetLeft();
 
 	unsigned num_of_cleaned = parsing_item.Length() - 1;
 	if (num_of_cleaned > 0) {
 		parsing_str.DeleteSymb(entry_point + 1, num_of_cleaned);
 	}
+
+	//==============================================
+	cout << "   Новая строка разбора: ";
+	parsing_str.PrintString();
+	cout << endl;
+	//==============================================
 }
 
 int LtoR_MethodAlg_u::CheckForRollback()
 {
-	unsigned num_of_step = parsing_log.Size() - 2; // начинаем с последнего нетупикового шага
+	int num_of_step = parsing_log.Size() - 2; // начинаем с последнего нетупикового шага
 
 	while (num_of_step > -1) { // пока не просмотрены все шаги
+
 		if (StepCanBeTried(num_of_step)) {
 			// откат выполнить можно
 			SetRollbackFlag(); // заходим в режим отката
@@ -285,32 +379,6 @@ int LtoR_MethodAlg_u::CheckForRollback()
 		}
 	}
 
-
-	//for (unsigned i = parsing_log.Size() - 1; i > -1; i--) {
-
-	//	current_line = *(dynamic_cast<LtoR_Line_u*>(parsing_log[i]));
-	//	next_rule = current_line.GetRuleNum() + current_line.GetOffset();
-	//	current_string = RestoreStringFromLog(current_line.GetCurString());
-
-	//	if (current_line.GetEntryPoint() == current_string.Length() - 1) {
-	//		dynamic_cast<LtoR_Line_u*>(parsing_log[i])->MarkAsDeadEndBranch();
-	//	}
-	//	else {
-	//		current_item = rules[next_rule.fir_num][next_rule.sec_num];
-	//		//if (next_rule != last_rule) {
-	//	//
-	//	//	if ((rules[next_rule.fir_num].RightSize() - 1) > next_rule.sec_num) {
-	//	//		next_rule.sec_num++;
-	//	//	}
-	//	//	else if ((rules.size() - 1) > next_rule.fir_num) {
-	//	//		next_rule.fir_num++;
-	//	//		next_rule.sec_num = 0;
-	//	//	}
-	//	//	// проверить начиная с next_rule
-	//	//}
-	//	//// пометить как тупиковую ветвь и искать дальше
-	//	}	
-	//}
 	return -1; // возврат нельзя осуществить
 }
 
@@ -369,6 +437,21 @@ bool LtoR_MethodAlg_u::DoParse()
 				WriteToLog(rule, TypeOfLtoRLine::PARSED_END);
 				parsing_is_over = true;
 			}
+			else if (AxiomIsNonCollapsible()) { /// ВЕТКА ДЛЯ НЕСВОРАЧИВАЕМЫХ АКСИОМ
+					if (GetAxiomInParsingString()) {
+						WriteToLog(rule, TypeOfLtoRLine::DEAD_END);
+						rollback_step = CheckForRollback();
+						if (rollback_step != -1) { // есть возможность возврата
+							next_rule = RollbackAndGetNextRule();
+
+							cout << endl << "ENTRY_POINT: " << to_string(entry_point) << endl;
+						}
+						else {
+							MarkLastStepInLogAs(TypeOfLtoRLine::NOT_PARSED_END);
+							parsing_is_over = true;
+						}
+					}
+			}
 		}
 		else {
 			if (!ChangeParsingItem()) { // тупиковая строка
@@ -378,11 +461,15 @@ bool LtoR_MethodAlg_u::DoParse()
 					next_rule = RollbackAndGetNextRule();
 				}
 				else {
-					MarkNotParsedEnd();
+					MarkLastStepInLogAs(TypeOfLtoRLine::NOT_PARSED_END);
 					parsing_is_over = true;
 				}
 			}
+			else {
+				next_rule = { 0, 0 };
+			}
 		}
+		parsing_log.PrintLogLtoR_u();
 	}
 	//////////////////
 	cout << endl <<"***РАЗМЕР_ЛОГА=" << parsing_log.Size();

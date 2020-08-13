@@ -26,11 +26,16 @@ private:
 	unsigned max_quantity;
 	bool rollback_flag;
 	int rollback_step;
+	bool non_collapsible_axiom;
+
+	bool DefineAxiomCollapsibility();
 	unsigned FindMaxQuantity();
 	bool ChangeParsingItem();
 	RuleNum FindSuitableRule(const RuleNum rulenum = { 0, 0 });
 	bool AxiomIsRecognized();
 	bool ParsingIsOnRollbackBranch() { return rollback_flag; }
+	bool AxiomIsNonCollapsible() { return non_collapsible_axiom; }
+	bool GetAxiomInParsingString();
 	void ClearRollbackFlag() { rollback_flag = false; }
 	void SetRollbackFlag() { rollback_flag = true; }
 	void SetStartOfSearch();
@@ -49,7 +54,7 @@ private:
 		const RuleNum& inp_offset = { 0, 0 });
 	ItemString RestoreStringFromLog(const string& log_str);
 
-	void MarkNotParsedEnd();
+	void MarkLastStepInLogAs(TypeOfLtoRLine mark_status);
 
 
 };

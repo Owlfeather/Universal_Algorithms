@@ -112,7 +112,7 @@ public:
 	void MarkAsDeadEndBranch() { status = TypeOfLtoRLine::DEAD_END_BRANCH; }
 	void MarkAsDeadEnd() { status = TypeOfLtoRLine::DEAD_END; }
 	void MarkAsNotParsedEnd() { status = TypeOfLtoRLine::NOT_PARSED_END; }
-	void SetNewEntryPoint() { entry_point_offset = entry_point;	}
+	void SetNewEntryPoint(int inp_entry_point) { entry_point_offset = inp_entry_point;	}
 	void SetOffset(const RuleNum& inp_rnum) { offset = inp_rnum; }
 
 	const TypeOfLtoRLine GetStatus() { return status; }

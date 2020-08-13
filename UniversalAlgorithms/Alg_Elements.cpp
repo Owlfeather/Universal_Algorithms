@@ -118,23 +118,31 @@ void LtoR_Line_u::PrintLine()
 	switch (status)
 	{
 	case REGULAR_LINE:
-		cout << " Правило: " << char(rule_num.fir_num + 224) << rule_num.sec_num + 1 << endl;
+		cout << " Правило: " << char(rule_num.fir_num + 224) << rule_num.sec_num + 1 << " REGULAR_LINE" << endl;
+		cout << "ENTRY_POINT: " << to_string(GetEntryPoint());
+		cout << " ENTRY_POINT_OFFSET: " << to_string(GetOffsetEntryPoint());
 		break;
 	case DEAD_END_BRANCH:
-		cout << " Правило: " << char(rule_num.fir_num + 224) << rule_num.sec_num + 1 << " \u00D8" << endl;
+		cout << " Правило: " << char(rule_num.fir_num + 224) << rule_num.sec_num + 1 << " \u00D8" << " DEAD_END_BRANCH" << endl;
+		cout << "ENTRY_POINT: " << to_string(GetEntryPoint());
+		cout << " ENTRY_POINT_OFFSET: " << to_string(GetOffsetEntryPoint());
 		break;
 	case DEAD_END:
-		cout << " Тупик " <<  endl;
+		cout << " Тупик " << " DEAD_END" << endl;
+		cout << "ENTRY_POINT: " << to_string(GetEntryPoint());
+		cout << " ENTRY_POINT_OFFSET: " << to_string(GetOffsetEntryPoint());
 		break;
 	case PARSED_END:
-		cout << " Конец " << endl;
+		cout << " Конец " << " PARSED_END" << endl;
 		break;
 	case NOT_PARSED_END:
-		cout << " Разбор невозможен " << endl;
+		cout << " Разбор невозможен " << " NOT_PARSED_END" << endl;
 		break;
 	default:
 		break;
 	}
+
+	cout << endl << "-----------------------------------------------" << endl;
 }
 
 vector<string> LtoR_Line_u::GetLine()
@@ -194,6 +202,7 @@ void ParseLog::PrintLogLtoR_u()
 {
 	cout << endl << endl << "Лог:" << endl;
 	for (int i = 0; i < records.size(); i++) {
+		cout << i << ")";
 		dynamic_cast<LtoR_Line_u*>(records[i])->PrintLine();
 	}
 }

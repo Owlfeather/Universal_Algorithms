@@ -61,6 +61,8 @@ public:
 
 	}
 
+	const vector<ItemSymb>& GetSymbs() { return cur_string; }
+
 	void DeleteSymb(const int & first, const int & quantity);
 	
 	operator string() const; 
