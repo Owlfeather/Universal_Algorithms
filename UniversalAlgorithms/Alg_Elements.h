@@ -97,16 +97,19 @@ private:
 	TypeOfLtoRLine status;
 	unsigned entry_point;
 	int entry_point_offset;
+	int source_step;
+
 public:
 
 	void SetLine(const string& inp_str, const RuleNum& inp_rnum,
 		const unsigned inp_entry,
 		const TypeOfLtoRLine inp_status = TypeOfLtoRLine::REGULAR_LINE, 
+		const int inp_source_s = -1,
 		const RuleNum& inp_offset = {0, 0},
 		const int inp_entry_p_off = -1);
+	
 	void PrintLine() override;
 	vector<string>  GetLine() override;
-
 	TypeOfAlg GetType() override;
 
 	void MarkAsDeadEndBranch() { status = TypeOfLtoRLine::DEAD_END_BRANCH; }
@@ -119,6 +122,9 @@ public:
 	const RuleNum& GetOffset() { return offset; }
 	const unsigned GetEntryPoint() { return entry_point; }
 	const int GetOffsetEntryPoint() { return entry_point_offset; }
+	const int GetSourceStep() { return source_step; }
+
+	bool HasSource() { return (source_step != -1); }
 	bool HasNoOffset() { return ((offset == RuleNum{0, 0}) and (entry_point_offset == -1)); }
 
 
@@ -130,6 +136,7 @@ public:
 		offset = source.GetOffset();
 		entry_point = source.GetEntryPoint();
 		entry_point_offset = source.GetOffsetEntryPoint();
+		source_step = source.GetSourceStep();
 		return *this;//возвращаем ссылку на текущий объект
 	}
 };

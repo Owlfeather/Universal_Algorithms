@@ -79,6 +79,28 @@ void LtoR_MethodAlg_u::SetRulesOfAlg()
 }
 
 
+bool LtoR_MethodAlg_u::CurrentStepIsDeadendBranch()
+{
+	auto it = std::find(std::begin(deadend_branch_steps),
+		std::end(deadend_branch_steps), parsing_str);
+
+	if (deadend_branch_steps.end() == it)
+	{
+		return false;
+	}
+	else
+	{
+		return true;
+	}
+}
+
+void LtoR_MethodAlg_u::AddStepToDeadendStepsList()
+{
+	deadend_branch_steps.push_back(parsing_str);
+}
+
+
+
 bool LtoR_MethodAlg_u::DefineAxiomCollapsibility()
 {
 	unsigned repeats_of_axiom = 0;
@@ -235,7 +257,7 @@ RuleNum LtoR_MethodAlg_u::RollbackAndGetNextRule()
 }
 
 void LtoR_MethodAlg_u::WriteToLog(const RuleNum cur_rule_num, 
-	const TypeOfLtoRLine inp_status, const RuleNum& inp_offset)
+	const TypeOfLtoRLine inp_status, const int inp_source_s, const RuleNum& inp_offset)
 {
 	LtoR_Line_u* buf_line;
 	buf_line = new LtoR_Line_u();
@@ -245,7 +267,7 @@ void LtoR_MethodAlg_u::WriteToLog(const RuleNum cur_rule_num,
 		str_with_separators += string(parsing_str[i]) + '\n';
 	}
 
-	buf_line->SetLine(str_with_separators, cur_rule_num, entry_point, inp_status, inp_offset);
+	buf_line->SetLine(str_with_separators, cur_rule_num, entry_point, inp_status, inp_source_s, inp_offset);
 	parsing_log.AddRecordLine(buf_line);
 	///table_model->AppendLine(buf_line);
 }
@@ -298,6 +320,20 @@ void LtoR_MethodAlg_u::MarkLastStepInLogAs(TypeOfLtoRLine mark_status)
 	}
 }
 
+void LtoR_MethodAlg_u::MarkDeadendBranch()
+{
+	dynamic_cast<LtoR_Line_u*>(parsing_log[rollback_step])->MarkAsDeadEndBranch();
+
+	int step_source = rollback_step;
+	while (dynamic_cast<LtoR_Line_u*>(parsing_log[step_source])->HasSource()) {
+		step_source = dynamic_cast<LtoR_Line_u*>(parsing_log[step_source])->GetSourceStep();
+		//if (dynamic_cast<LtoR_Line_u*>(parsing_log[step_source])->GetStatus() != TypeOfLtoRLine::DEAD_END) {
+			dynamic_cast<LtoR_Line_u*>(parsing_log[step_source])->MarkAsDeadEndBranch();
+		//}
+		
+	}
+}
+
 bool LtoR_MethodAlg_u::AxiomIsRecognized()
 {
 	if ((parsing_str.Length() == 1)
@@ -333,6 +369,15 @@ void LtoR_MethodAlg_u::AddOffsetToRollbackStep(const RuleNum& rule)
 
 	dynamic_cast<LtoR_Line_u*>(parsing_log[rollback_step])->SetNewEntryPoint(entry_point);
 	dynamic_cast<LtoR_Line_u*>(parsing_log[rollback_step])->SetOffset(offset);
+
+
+	int step_source = rollback_step;
+	while (dynamic_cast<LtoR_Line_u*>(parsing_log[step_source])->HasSource()) {
+		step_source = dynamic_cast<LtoR_Line_u*>(parsing_log[step_source])->GetSourceStep();
+		dynamic_cast<LtoR_Line_u*>(parsing_log[step_source])->SetNewEntryPoint(entry_point);
+		dynamic_cast<LtoR_Line_u*>(parsing_log[step_source])->SetOffset(offset);
+	}
+	
 }
 
 
@@ -365,6 +410,7 @@ void LtoR_MethodAlg_u::TransformAccordingRule(const RuleNum& rule)
 int LtoR_MethodAlg_u::CheckForRollback()
 {
 	int num_of_step = parsing_log.Size() - 2; // начинаем с последнего нетупикового шага
+	int step_source;
 
 	while (num_of_step > -1) { // пока не просмотрены все шаги
 
@@ -375,6 +421,13 @@ int LtoR_MethodAlg_u::CheckForRollback()
 		}
 		else {
 			dynamic_cast<LtoR_Line_u*>(parsing_log[num_of_step])->MarkAsDeadEndBranch();
+
+			step_source = num_of_step;
+			while (dynamic_cast<LtoR_Line_u*>(parsing_log[step_source])->HasSource()) {
+				step_source = dynamic_cast<LtoR_Line_u*>(parsing_log[step_source])->GetSourceStep();
+				dynamic_cast<LtoR_Line_u*>(parsing_log[step_source])->MarkAsDeadEndBranch();
+			}
+
 			num_of_step--;
 		}
 	}
@@ -420,28 +473,32 @@ bool LtoR_MethodAlg_u::DoParse()
 	RuleNum next_rule = { 0, 0 }, 
 			rule;
 
+
 	while (!parsing_is_over) {
 
-		rule = FindSuitableRule(next_rule);
+			rule = FindSuitableRule(next_rule);
 
-		if (rule.IsFound()) {
-			if (ParsingIsOnRollbackBranch()) {
-				ClearRollbackFlag();
-				AddOffsetToRollbackStep(rule);
-			}
-			WriteToLog(rule);
-			TransformAccordingRule(rule);
-			SetStartOfSearch();
+			if (rule.IsFound()) {
+				if (ParsingIsOnRollbackBranch()) {
+					ClearRollbackFlag();
+					AddOffsetToRollbackStep(rule);
+					WriteToLog(rule, TypeOfLtoRLine::REGULAR_LINE, rollback_step);
+				}
+				else {
+					WriteToLog(rule);
+				}
+				TransformAccordingRule(rule);
+				SetStartOfSearch();
 
-			if (AxiomIsRecognized()) {
-				WriteToLog(rule, TypeOfLtoRLine::PARSED_END);
-				parsing_is_over = true;
-			}
-			else if (AxiomIsNonCollapsible()) { /// ВЕТКА ДЛЯ НЕСВОРАЧИВАЕМЫХ АКСИОМ
+				if (AxiomIsRecognized()) {
+					WriteToLog(rule, TypeOfLtoRLine::PARSED_END);
+					parsing_is_over = true;
+				}
+				else if (AxiomIsNonCollapsible()) { /// ВЕТКА ДЛЯ НЕСВОРАЧИВАЕМЫХ АКСИОМ
 					if (GetAxiomInParsingString()) {
 						WriteToLog(rule, TypeOfLtoRLine::DEAD_END);
 						rollback_step = CheckForRollback();
-						if (rollback_step != -1) { // есть возможность возврата
+						if (RollbackIsPossible()) { // есть возможность возврата
 							next_rule = RollbackAndGetNextRule();
 
 							cout << endl << "ENTRY_POINT: " << to_string(entry_point) << endl;
@@ -451,25 +508,53 @@ bool LtoR_MethodAlg_u::DoParse()
 							parsing_is_over = true;
 						}
 					}
-			}
-		}
-		else {
-			if (!ChangeParsingItem()) { // тупиковая строка
-				WriteToLog(rule, TypeOfLtoRLine::DEAD_END);
-				rollback_step = CheckForRollback();
-				if (rollback_step != -1) { // есть возможность возврата
-					next_rule = RollbackAndGetNextRule();
 				}
-				else {
-					MarkLastStepInLogAs(TypeOfLtoRLine::NOT_PARSED_END);
-					parsing_is_over = true;
+				else if (CurrentStepIsDeadendBranch()) {
+					if (ParsingIsOnRollbackBranch()) {
+						//MarkLastStepInLogAs(TypeOfLtoRLine::DEAD_END_BRANCH);
+						rollback_step = CheckForRollback();
+						if (RollbackIsPossible()) { // есть возможность возврата
+							next_rule = RollbackAndGetNextRule();
+						}
+						else {
+							MarkLastStepInLogAs(TypeOfLtoRLine::NOT_PARSED_END);
+							parsing_is_over = true;
+						}
+					}
 				}
 			}
 			else {
-				next_rule = { 0, 0 };
+				if (!ChangeParsingItem()) { // тупиковая строка
+					if (AxiomIsNonCollapsible()) {
+						if (ParsingIsOnRollbackBranch()) {
+							cout << endl << "OH_SHIT" << endl;
+							//WriteToLog(rule, TypeOfLtoRLine::DEAD_END_BRANCH, rollback_step);
+							MarkDeadendBranch();
+						}
+						else {
+							WriteToLog(rule, TypeOfLtoRLine::DEAD_END_BRANCH);
+						}
+						AddStepToDeadendStepsList();
+					}
+					else {
+						WriteToLog(rule, TypeOfLtoRLine::DEAD_END);
+					}
+					rollback_step = CheckForRollback();
+					if (RollbackIsPossible()) { // есть возможность возврата
+						next_rule = RollbackAndGetNextRule();
+					}
+					else {
+						MarkLastStepInLogAs(TypeOfLtoRLine::NOT_PARSED_END);
+						parsing_is_over = true;
+					}
+				}
+				else {
+					next_rule = { 0, 0 };
+				}
 			}
-		}
-		parsing_log.PrintLogLtoR_u();
+			//parsing_log.PrintLogLtoR_u();
+			//i++;
+		//}
 	}
 	//////////////////
 	cout << endl <<"***РАЗМЕР_ЛОГА=" << parsing_log.Size();

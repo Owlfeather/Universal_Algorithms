@@ -94,13 +94,16 @@ TypeOfAlg LtoR_Line::GetType()
 
 void LtoR_Line_u::SetLine(const string& inp_str, const RuleNum& inp_rnum,
 						const unsigned inp_entry,
-						const TypeOfLtoRLine inp_status, const RuleNum& inp_offset,
+						const TypeOfLtoRLine inp_status, 
+						const int inp_source_s,
+						const RuleNum& inp_offset,
 						const int inp_entry_p_off)
 {
 	cur_string = inp_str;
 	rule_num = inp_rnum;
 	entry_point = inp_entry;
 	status = inp_status;
+	source_step = inp_source_s;
 	offset = inp_offset;
 	entry_point_offset = inp_entry_p_off;
 }
@@ -121,16 +124,19 @@ void LtoR_Line_u::PrintLine()
 		cout << " Правило: " << char(rule_num.fir_num + 224) << rule_num.sec_num + 1 << " REGULAR_LINE" << endl;
 		cout << "ENTRY_POINT: " << to_string(GetEntryPoint());
 		cout << " ENTRY_POINT_OFFSET: " << to_string(GetOffsetEntryPoint());
+		cout << " SOURCE_STEP: " << to_string(GetSourceStep());
 		break;
 	case DEAD_END_BRANCH:
 		cout << " Правило: " << char(rule_num.fir_num + 224) << rule_num.sec_num + 1 << " \u00D8" << " DEAD_END_BRANCH" << endl;
 		cout << "ENTRY_POINT: " << to_string(GetEntryPoint());
 		cout << " ENTRY_POINT_OFFSET: " << to_string(GetOffsetEntryPoint());
+		cout << " SOURCE_STEP: " << to_string(GetSourceStep());
 		break;
 	case DEAD_END:
 		cout << " Тупик " << " DEAD_END" << endl;
 		cout << "ENTRY_POINT: " << to_string(GetEntryPoint());
 		cout << " ENTRY_POINT_OFFSET: " << to_string(GetOffsetEntryPoint());
+		cout << " SOURCE_STEP: " << to_string(GetSourceStep());
 		break;
 	case PARSED_END:
 		cout << " Конец " << " PARSED_END" << endl;
