@@ -21,6 +21,7 @@ public:
 	bool DoParse() override;
 	void SetParsingStr(ItemString inp_str) override;
 
+	void SetRulesOfAlg(unsigned code_of_rules);
 
 private:
 

@@ -78,6 +78,69 @@ void LtoR_MethodAlg_u::SetRulesOfAlg()
 	}
 }
 
+void LtoR_MethodAlg_u::SetRulesOfAlg(unsigned code_of_rules) {
+	if (code_of_rules == 0) { // ЛогичВыр
+		ItemSymb c_Log_ex("<ЛогичВыр>", false, true);
+		ItemSymb c_logex("<ЛВыражение>", false);
+		ItemSymb c_intersection("<Пересечение>", false);
+		ItemSymb c_operand("<Операнд>", false);
+		ItemSymb c_and("^");
+		ItemSymb c_or("v");
+		ItemSymb c_left("(");
+		ItemSymb c_right(")");
+		ItemSymb c_id("<Ид>");
+
+		vector<ItemSymb> buf_symb;
+		vector<ItemString> buf_str;
+
+		buf_symb = { c_logex };
+		buf_str = { buf_symb };
+		rules.push_back(ItemRule(c_Log_ex, buf_str));
+
+		buf_str.clear();
+		buf_symb = { c_logex, c_or, c_intersection };
+		buf_str.push_back(buf_symb);
+		buf_symb = { c_intersection };
+		buf_str.push_back(buf_symb);
+
+		rules.push_back(ItemRule(c_logex, buf_str));
+
+		buf_str.clear();
+		buf_symb = { c_intersection, c_and, c_operand };
+		buf_str.push_back(buf_symb);
+		buf_symb = { c_operand };
+		buf_str.push_back(buf_symb);
+
+		rules.push_back(ItemRule(c_intersection, buf_str));
+
+		buf_str.clear();
+		buf_symb = { c_left, c_logex, c_right };
+		buf_str.push_back(buf_symb);
+		buf_symb = { c_id };
+		buf_str.push_back(buf_symb);
+
+		rules.push_back(ItemRule(c_operand, buf_str));
+
+		//----------------------------------------------------
+
+		max_quantity = FindMaxQuantity();
+
+		cout << endl << "Правила для разбора слева направо сформированы:" << endl << endl;
+		for (unsigned i = 0; i < rules.size(); i++) {
+			rules[i].PrintRule();
+			cout << endl;
+		}
+
+		non_collapsible_axiom = DefineAxiomCollapsibility();
+		if (non_collapsible_axiom) {
+			cout << endl << "Несворачиваемая аксиома" << endl;
+		}
+		else {
+			cout << endl << "Сворачиваемая аксиома" << endl;
+		}
+	}
+}
+
 
 bool LtoR_MethodAlg_u::CurrentStepIsDeadendBranch()
 {
