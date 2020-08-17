@@ -99,6 +99,19 @@ void LtoR_MethodAlg_u::AddStepToDeadendStepsList()
 	deadend_branch_steps.push_back(parsing_str);
 }
 
+bool LtoR_MethodAlg_u::StepHasDeadendStatus(unsigned step)
+{
+	TypeOfLtoRLine status = dynamic_cast<LtoR_Line_u*>(parsing_log[step])->GetStatus();
+
+	if ((status == TypeOfLtoRLine::DEAD_END_BRANCH)
+		|| (status == TypeOfLtoRLine::DEAD_END)) {
+		return true;
+	}
+	else {
+		return false;
+	}
+}
+
 
 
 bool LtoR_MethodAlg_u::DefineAxiomCollapsibility()
@@ -320,18 +333,19 @@ void LtoR_MethodAlg_u::MarkLastStepInLogAs(TypeOfLtoRLine mark_status)
 	}
 }
 
-void LtoR_MethodAlg_u::MarkDeadendBranch()
+void LtoR_MethodAlg_u::MarkDeadendBranch(unsigned step)
 {
-	dynamic_cast<LtoR_Line_u*>(parsing_log[rollback_step])->MarkAsDeadEndBranch();
+		dynamic_cast<LtoR_Line_u*>(parsing_log[step])->MarkAsDeadEndBranch();
 
-	int step_source = rollback_step;
-	while (dynamic_cast<LtoR_Line_u*>(parsing_log[step_source])->HasSource()) {
-		step_source = dynamic_cast<LtoR_Line_u*>(parsing_log[step_source])->GetSourceStep();
-		//if (dynamic_cast<LtoR_Line_u*>(parsing_log[step_source])->GetStatus() != TypeOfLtoRLine::DEAD_END) {
+		cout << endl << "___пометили как тупиковую ветвь: " << to_string(step) << endl;
+
+		int step_source = step;
+		while (dynamic_cast<LtoR_Line_u*>(parsing_log[step_source])->HasSource()) {
+			step_source = dynamic_cast<LtoR_Line_u*>(parsing_log[step_source])->GetSourceStep();
 			dynamic_cast<LtoR_Line_u*>(parsing_log[step_source])->MarkAsDeadEndBranch();
-		//}
-		
-	}
+			cout << endl << "___пометили как тупиковую ветвь: " << to_string(step_source) << endl;
+
+		}
 }
 
 bool LtoR_MethodAlg_u::AxiomIsRecognized()
@@ -420,14 +434,13 @@ int LtoR_MethodAlg_u::CheckForRollback()
 			return num_of_step;
 		}
 		else {
-			dynamic_cast<LtoR_Line_u*>(parsing_log[num_of_step])->MarkAsDeadEndBranch();
+			//auto already_deadend = StepHasDeadendStatus(num_of_step);
+			//cout << endl << "===========================================" <<to_string(num_of_step) << " --- " << to_string(already_deadend) << endl;
+			if (!StepHasDeadendStatus(num_of_step)) {
 
-			step_source = num_of_step;
-			while (dynamic_cast<LtoR_Line_u*>(parsing_log[step_source])->HasSource()) {
-				step_source = dynamic_cast<LtoR_Line_u*>(parsing_log[step_source])->GetSourceStep();
-				dynamic_cast<LtoR_Line_u*>(parsing_log[step_source])->MarkAsDeadEndBranch();
+				MarkDeadendBranch(num_of_step);
+				
 			}
-
 			num_of_step--;
 		}
 	}
@@ -510,8 +523,7 @@ bool LtoR_MethodAlg_u::DoParse()
 					}
 				}
 				else if (CurrentStepIsDeadendBranch()) {
-					if (ParsingIsOnRollbackBranch()) {
-						//MarkLastStepInLogAs(TypeOfLtoRLine::DEAD_END_BRANCH);
+					//if (ParsingIsOnRollbackBranch()) {
 						rollback_step = CheckForRollback();
 						if (RollbackIsPossible()) { // есть возможность возврата
 							next_rule = RollbackAndGetNextRule();
@@ -520,7 +532,7 @@ bool LtoR_MethodAlg_u::DoParse()
 							MarkLastStepInLogAs(TypeOfLtoRLine::NOT_PARSED_END);
 							parsing_is_over = true;
 						}
-					}
+					//}
 				}
 			}
 			else {
@@ -529,7 +541,7 @@ bool LtoR_MethodAlg_u::DoParse()
 						if (ParsingIsOnRollbackBranch()) {
 							cout << endl << "OH_SHIT" << endl;
 							//WriteToLog(rule, TypeOfLtoRLine::DEAD_END_BRANCH, rollback_step);
-							MarkDeadendBranch();
+							MarkDeadendBranch(rollback_step);
 						}
 						else {
 							WriteToLog(rule, TypeOfLtoRLine::DEAD_END_BRANCH);

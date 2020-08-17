@@ -13,7 +13,7 @@ int main() {
 	setlocale(0, "russian");
 	cout << "Запуск!" << endl;
 
-	string input_str = "-:45";
+	string input_str = "--45";
 	//string input_str = "d+c*(a+b)";
 	//string input_str = "(Udh-(hdhdh*(((tuh)))))";
 

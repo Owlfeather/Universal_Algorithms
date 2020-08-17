@@ -34,6 +34,7 @@ private:
 	bool CurrentStepIsDeadendBranch();
 	void AddStepToDeadendStepsList();
 
+	bool StepHasDeadendStatus(unsigned step);
 	bool RollbackIsPossible() { return (rollback_step != -1); }
 	bool DefineAxiomCollapsibility();
 	unsigned FindMaxQuantity();
@@ -63,7 +64,7 @@ private:
 	ItemString RestoreStringFromLog(const string& log_str);
 
 	void MarkLastStepInLogAs(TypeOfLtoRLine mark_status);
-	void MarkDeadendBranch();
+	void MarkDeadendBranch(unsigned step);
 
 
 };
