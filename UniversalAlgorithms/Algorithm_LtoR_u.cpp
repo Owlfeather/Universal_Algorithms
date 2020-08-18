@@ -167,7 +167,9 @@ bool LtoR_MethodAlg_u::StepHasDeadendStatus(unsigned step)
 	TypeOfLtoRLine status = dynamic_cast<LtoR_Line_u*>(parsing_log[step])->GetStatus();
 
 	if ((status == TypeOfLtoRLine::DEAD_END_BRANCH)
-		|| (status == TypeOfLtoRLine::DEAD_END)) {
+		|| (status == TypeOfLtoRLine::DEAD_END)
+		|| (status == TypeOfLtoRLine::REG_FURTHER_DEAD_END)
+		|| (status == TypeOfLtoRLine::DEAD_END_BRANCH_VIEWED)) {
 		return true;
 	}
 	else {
@@ -398,14 +400,14 @@ void LtoR_MethodAlg_u::MarkLastStepInLogAs(TypeOfLtoRLine mark_status)
 
 void LtoR_MethodAlg_u::MarkDeadendBranch(unsigned step)
 {
-		dynamic_cast<LtoR_Line_u*>(parsing_log[step])->MarkAsDeadEndBranch();
+		dynamic_cast<LtoR_Line_u*>(parsing_log[step])->MarkAsFurtherDeadend();
 
 		cout << endl << "___ïîìåòèëè êàê òóïèêîâóþ âåòâü: " << to_string(step) << endl;
 
 		int step_source = step;
 		while (dynamic_cast<LtoR_Line_u*>(parsing_log[step_source])->HasSource()) {
 			step_source = dynamic_cast<LtoR_Line_u*>(parsing_log[step_source])->GetSourceStep();
-			dynamic_cast<LtoR_Line_u*>(parsing_log[step_source])->MarkAsDeadEndBranch();
+			dynamic_cast<LtoR_Line_u*>(parsing_log[step_source])->MarkAsFurtherDeadend();
 			cout << endl << "___ïîìåòèëè êàê òóïèêîâóþ âåòâü: " << to_string(step_source) << endl;
 
 		}
@@ -501,6 +503,7 @@ int LtoR_MethodAlg_u::CheckForRollback()
 			//cout << endl << "===========================================" <<to_string(num_of_step) << " --- " << to_string(already_deadend) << endl;
 			if (!StepHasDeadendStatus(num_of_step)) {
 
+				WriteToLog({-1, -1}, TypeOfLtoRLine::DEAD_END_BRANCH, num_of_step);
 				MarkDeadendBranch(num_of_step);
 				
 			}
@@ -522,7 +525,9 @@ bool LtoR_MethodAlg_u::StepCanBeTried(unsigned num_of_step)
 	status = current_line.GetStatus();
 
 	if ((status == TypeOfLtoRLine::DEAD_END)
-		|| (status == TypeOfLtoRLine::DEAD_END_BRANCH)) {
+		|| (status == TypeOfLtoRLine::DEAD_END_BRANCH)
+		|| (status == TypeOfLtoRLine::REG_FURTHER_DEAD_END)
+		|| (status == TypeOfLtoRLine::DEAD_END_BRANCH_VIEWED)) {
 		return false;
 	}
 
@@ -570,23 +575,22 @@ bool LtoR_MethodAlg_u::DoParse()
 					WriteToLog(rule, TypeOfLtoRLine::PARSED_END);
 					parsing_is_over = true;
 				}
-				else if (AxiomIsNonCollapsible()) { /// ÂÅÒÊÀ ÄËß ÍÅÑÂÎÐÀ×ÈÂÀÅÌÛÕ ÀÊÑÈÎÌ
-					if (GetAxiomInParsingString()) {
-						WriteToLog(rule, TypeOfLtoRLine::DEAD_END);
-						rollback_step = CheckForRollback();
-						if (RollbackIsPossible()) { // åñòü âîçìîæíîñòü âîçâðàòà
-							next_rule = RollbackAndGetNextRule();
+				else if ((AxiomIsNonCollapsible()) /// ÂÅÒÊÀ ÄËß ÍÅÑÂÎÐÀ×ÈÂÀÅÌÛÕ ÀÊÑÈÎÌ
+					&& (GetAxiomInParsingString())) {
+					WriteToLog(rule, TypeOfLtoRLine::DEAD_END);
+					rollback_step = CheckForRollback();
+					if (RollbackIsPossible()) { // åñòü âîçìîæíîñòü âîçâðàòà
+						next_rule = RollbackAndGetNextRule();
 
-							cout << endl << "ENTRY_POINT: " << to_string(entry_point) << endl;
-						}
-						else {
-							MarkLastStepInLogAs(TypeOfLtoRLine::NOT_PARSED_END);
-							parsing_is_over = true;
-						}
+						cout << endl << "ENTRY_POINT: " << to_string(entry_point) << endl;
+					}
+					else {
+						MarkLastStepInLogAs(TypeOfLtoRLine::NOT_PARSED_END);
+						parsing_is_over = true;
 					}
 				}
 				else if (CurrentStepIsDeadendBranch()) {
-					//if (ParsingIsOnRollbackBranch()) {
+					WriteToLog(rule, TypeOfLtoRLine::DEAD_END_BRANCH_VIEWED);
 						rollback_step = CheckForRollback();
 						if (RollbackIsPossible()) { // åñòü âîçìîæíîñòü âîçâðàòà
 							next_rule = RollbackAndGetNextRule();
@@ -595,15 +599,13 @@ bool LtoR_MethodAlg_u::DoParse()
 							MarkLastStepInLogAs(TypeOfLtoRLine::NOT_PARSED_END);
 							parsing_is_over = true;
 						}
-					//}
 				}
 			}
 			else {
 				if (!ChangeParsingItem()) { // òóïèêîâàÿ ñòðîêà
 					if (AxiomIsNonCollapsible()) {
 						if (ParsingIsOnRollbackBranch()) {
-							cout << endl << "OH_SHIT" << endl;
-							//WriteToLog(rule, TypeOfLtoRLine::DEAD_END_BRANCH, rollback_step);
+							WriteToLog(rule, TypeOfLtoRLine::DEAD_END_BRANCH, rollback_step); ///
 							MarkDeadendBranch(rollback_step);
 						}
 						else {
@@ -635,5 +637,6 @@ bool LtoR_MethodAlg_u::DoParse()
 	cout << endl <<"***ÐÀÇÌÅÐ_ËÎÃÀ=" << parsing_log.Size();
 
 	parsing_log.PrintLogLtoR_u();
+	PrintDeadEndBranches();
 	return false;
 }

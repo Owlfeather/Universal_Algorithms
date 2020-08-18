@@ -18,10 +18,10 @@ int main() {
 	//string input_str = "(Udh-(hdhdh*(((tuh)))))";
 
 	LtoR_MethodAlg_u alg1;
-	alg1.SetRulesOfAlg(0);
+	alg1.SetRulesOfAlg();
 	
-	/////alg1.SetParsingStr(input_str);
-	/////alg1.DoParse();
+	alg1.SetParsingStr(input_str);
+	alg1.DoParse();
 
 	//alg1.PrintLogLtoR();
 

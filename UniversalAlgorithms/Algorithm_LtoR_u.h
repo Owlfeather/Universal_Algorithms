@@ -32,6 +32,14 @@ private:
 	bool non_collapsible_axiom;
 	std::list<ItemString> deadend_branch_steps;
 
+	void PrintDeadEndBranches() {
+		cout << endl << endl << "===DEAD_END_BRANCHES_LIST===" << endl << endl;
+		for (ItemString step : deadend_branch_steps) {
+			step.PrintString();
+			cout << endl;
+		}
+	}
+
 	bool CurrentStepIsDeadendBranch();
 	void AddStepToDeadendStepsList();
 

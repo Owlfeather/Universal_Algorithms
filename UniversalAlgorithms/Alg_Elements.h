@@ -113,6 +113,7 @@ public:
 	TypeOfAlg GetType() override;
 
 	void MarkAsDeadEndBranch() { status = TypeOfLtoRLine::DEAD_END_BRANCH; }
+	void MarkAsFurtherDeadend() { status = TypeOfLtoRLine::REG_FURTHER_DEAD_END; }
 	void MarkAsDeadEnd() { status = TypeOfLtoRLine::DEAD_END; }
 	void MarkAsNotParsedEnd() { status = TypeOfLtoRLine::NOT_PARSED_END; }
 	void SetNewEntryPoint(int inp_entry_point) { entry_point_offset = inp_entry_point;	}

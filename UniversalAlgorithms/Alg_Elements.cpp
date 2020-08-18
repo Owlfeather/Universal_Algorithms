@@ -126,8 +126,20 @@ void LtoR_Line_u::PrintLine()
 		cout << " ENTRY_POINT_OFFSET: " << to_string(GetOffsetEntryPoint());
 		cout << " SOURCE_STEP: " << to_string(GetSourceStep());
 		break;
+	case REG_FURTHER_DEAD_END:
+		cout << " Правило: " << char(rule_num.fir_num + 224) << rule_num.sec_num + 1 << " REG_FURTHER_DEAD_END" << endl;
+		cout << "ENTRY_POINT: " << to_string(GetEntryPoint());
+		cout << " ENTRY_POINT_OFFSET: " << to_string(GetOffsetEntryPoint());
+		cout << " SOURCE_STEP: " << to_string(GetSourceStep());
+		break;
 	case DEAD_END_BRANCH:
 		cout << " Правило: " << char(rule_num.fir_num + 224) << rule_num.sec_num + 1 << " \u00D8" << " DEAD_END_BRANCH" << endl;
+		cout << "ENTRY_POINT: " << to_string(GetEntryPoint());
+		cout << " ENTRY_POINT_OFFSET: " << to_string(GetOffsetEntryPoint());
+		cout << " SOURCE_STEP: " << to_string(GetSourceStep());
+		break;
+	case DEAD_END_BRANCH_VIEWED:
+		cout << " Правило: " << char(rule_num.fir_num + 224) << rule_num.sec_num + 1 << " \u00D8" << " DEAD_END_BRANCH_VIEWED" << endl;
 		cout << "ENTRY_POINT: " << to_string(GetEntryPoint());
 		cout << " ENTRY_POINT_OFFSET: " << to_string(GetOffsetEntryPoint());
 		cout << " SOURCE_STEP: " << to_string(GetSourceStep());
@@ -171,8 +183,14 @@ vector<string> LtoR_Line_u::GetLine()
 	case REGULAR_LINE:
 		line.push_back(char(rule_num.fir_num + 224) + to_string(rule_num.sec_num + 1));
 		break;
+	case REG_FURTHER_DEAD_END:
+		line.push_back(char(rule_num.fir_num + 224) + to_string(rule_num.sec_num + 1));
+		break;
 	case DEAD_END_BRANCH:
 		line.push_back(char(rule_num.fir_num + 224) + to_string(rule_num.sec_num + 1));
+		break;
+	case DEAD_END_BRANCH_VIEWED:
+		line.push_back("Шаг ведет к тупику!");
 		break;
 	case DEAD_END:
 		line.push_back("Тупик!");
