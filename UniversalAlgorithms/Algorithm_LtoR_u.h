@@ -22,6 +22,14 @@ public:
 	void SetParsingStr(ItemString inp_str) override;
 
 	void SetRulesOfAlg(unsigned code_of_rules);
+	ResultOfStringReceiving SetParsingStr(string inp_str, bool contains_complex_nonterminals);
+	void AddSymbToParsingStr(char ch) {
+		char help[2];
+		help[0] = ch;
+		help[1] = '\0';
+		parsing_str.AddSymb(ItemSymb(string(help)));
+	}
+	void PrintParsingStr() { parsing_str.PrintElements(); }
 
 private:
 

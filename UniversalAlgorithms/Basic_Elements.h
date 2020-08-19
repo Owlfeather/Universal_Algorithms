@@ -50,6 +50,13 @@ public:
 	int Length() { return cur_string.size(); }
 	void PrintString();
 
+	void PrintElements() {
+		cout << endl;
+		for (int i = 0; i < cur_string.size(); i++) {
+			cout << string(cur_string[i]) << "_";
+		}
+	}
+
 	void AddSymb(const ItemSymb & inp_symb, const int pos = -1) 
 	{ 
 		if (pos == -1) {
@@ -141,4 +148,11 @@ enum TypeOfRelation
 	OP_ERROR,
 	ERROR,
 	EXIT
+};
+
+enum ResultOfStringReceiving
+{
+	SUCCESS,
+	FAILURE,
+	EMPTY_BRACKETS
 };

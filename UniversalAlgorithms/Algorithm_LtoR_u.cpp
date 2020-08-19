@@ -141,6 +141,115 @@ void LtoR_MethodAlg_u::SetRulesOfAlg(unsigned code_of_rules) {
 	}
 }
 
+ResultOfStringReceiving LtoR_MethodAlg_u::SetParsingStr(string inp_str, bool contains_complex_nonterminals)
+{
+	string work_string = inp_str;
+
+	if (contains_complex_nonterminals) {
+		unsigned string_size = work_string.size();
+		unsigned i = 1;
+		char symb = work_string[0];
+		bool waiting_for_sec_br = (symb == '<');
+		string complex_terminal = "";
+
+		if (!waiting_for_sec_br) {
+			if (symb == '>') {
+				return ResultOfStringReceiving::FAILURE;
+			}
+			else {
+				if ((symb == '$')
+					&& (string_size > 1)) {
+					if (work_string[1] == '<') {
+						AddSymbToParsingStr('<');
+					}
+					else if (work_string[1] == '>') {
+						AddSymbToParsingStr('>');
+					}
+					else if (work_string[1] == '$') {
+						AddSymbToParsingStr('$');
+					}
+					i = 2;
+				}
+				else {
+					AddSymbToParsingStr(symb);
+					i = 1;
+				}
+			}
+		}
+		while (i < string_size) {
+			symb = inp_str[i];
+
+			if (symb == '>') {
+				if (waiting_for_sec_br) {
+					if (work_string[i - 1] != '$') {
+						if (complex_terminal.size() != 0) {
+							waiting_for_sec_br = false;
+							parsing_str.AddSymb("<" + complex_terminal + ">");
+							complex_terminal.clear();
+						}
+						else {
+							return ResultOfStringReceiving::EMPTY_BRACKETS;
+						}
+					}
+					else {
+						complex_terminal.push_back('>');
+					}
+				}
+				else {
+					if (work_string[i - 1] == '$') {
+						AddSymbToParsingStr('>');
+					}
+					else {
+						return ResultOfStringReceiving::FAILURE;
+					}
+				}
+			}
+			else if (symb == '<') {
+				if (waiting_for_sec_br) {
+					if (work_string[i - 1] != '$') {
+						return ResultOfStringReceiving::FAILURE;
+					}
+					else {
+						complex_terminal.push_back('<');
+					}
+				}
+				else {
+					if (work_string[i - 1] == '$') {
+						AddSymbToParsingStr('<');
+					}
+					else {
+						waiting_for_sec_br = true;
+					}
+				}
+			}
+			else if (symb == '$') {
+				if (work_string[i - 1] == '$') {
+					work_string[i] = '&';
+					if (waiting_for_sec_br) {
+						complex_terminal.push_back('$');
+					}
+					else {
+						AddSymbToParsingStr('$');
+					}
+				}
+			}
+			else {
+				if (waiting_for_sec_br) {
+					complex_terminal.push_back(inp_str[i]);
+				}
+				else {
+					AddSymbToParsingStr(inp_str[i]);
+				}
+			}
+			i++;
+		}
+		return ResultOfStringReceiving::SUCCESS;
+	}
+	else {
+		parsing_str = inp_str;
+	}
+}
+
 
 bool LtoR_MethodAlg_u::CurrentStepIsDeadendBranch()
 {

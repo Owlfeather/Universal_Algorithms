@@ -13,15 +13,28 @@ int main() {
 	setlocale(0, "russian");
 	cout << "Запуск!" << endl;
 
-	string input_str = "--45";
+	string input_str = "-$$<$$>4<$$5>>";
 	//string input_str = "d+c*(a+b)";
 	//string input_str = "(Udh-(hdhdh*(((tuh)))))";
 
 	LtoR_MethodAlg_u alg1;
 	alg1.SetRulesOfAlg();
 	
-	alg1.SetParsingStr(input_str);
-	alg1.DoParse();
+	switch (alg1.SetParsingStr(input_str, true))
+	{
+	case ResultOfStringReceiving::EMPTY_BRACKETS:
+		cout << endl << "Пустые скобки";
+		break;
+	case ResultOfStringReceiving::FAILURE:
+		cout << endl << "Ошибка";
+		break;
+	case ResultOfStringReceiving::SUCCESS:
+		cout << endl << "Успех";
+		alg1.PrintParsingStr();
+		break;
+	}
+
+	//alg1.DoParse();
 
 	//alg1.PrintLogLtoR();
 
