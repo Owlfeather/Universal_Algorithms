@@ -13,7 +13,9 @@ int main() {
 	setlocale(0, "russian");
 	cout << "Запуск!" << endl;
 
-	string input_str = "-<$$>4<$$5>";
+	//string input_str = "(<Ид>v<Ид>)^<Ид>";
+
+	string input_str = "-45";
 	//string input_str = "d+c*(a+b)";
 	//string input_str = "(Udh-(hdhdh*(((tuh)))))";
 
@@ -34,7 +36,7 @@ int main() {
 		break;
 	}
 
-	//alg1.DoParse();
+	alg1.DoParse();
 
 	//alg1.PrintLogLtoR();
 

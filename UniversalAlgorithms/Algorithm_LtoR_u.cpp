@@ -678,9 +678,14 @@ int LtoR_MethodAlg_u::CheckForRollback()
 			//auto already_deadend = StepHasDeadendStatus(num_of_step);
 			//cout << endl << "===========================================" <<to_string(num_of_step) << " --- " << to_string(already_deadend) << endl;
 			if (!StepHasDeadendStatus(num_of_step)) {
+				ItemString cur_str = parsing_str;
+				parsing_str = RestoreStringFromLog((dynamic_cast<LtoR_Line_u*>(parsing_log[num_of_step]))->GetCurString());
 
 				WriteToLog({-1, -1}, TypeOfLtoRLine::DEAD_END_BRANCH, num_of_step);
 				MarkDeadendBranch(num_of_step);
+				AddStepToDeadendStepsList();
+
+				parsing_str = cur_str;
 				
 			}
 			num_of_step--;
@@ -699,6 +704,7 @@ bool LtoR_MethodAlg_u::StepCanBeTried(unsigned num_of_step)
 
 	current_line = *(dynamic_cast<LtoR_Line_u*>(parsing_log[num_of_step]));
 	status = current_line.GetStatus();
+	current_string = RestoreStringFromLog(current_line.GetCurString());
 
 	if ((status == TypeOfLtoRLine::DEAD_END)
 		|| (status == TypeOfLtoRLine::DEAD_END_BRANCH)
