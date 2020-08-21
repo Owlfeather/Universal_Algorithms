@@ -118,7 +118,7 @@ void LtoR_Line_u::PrintLine()
 	}
 
 	cout << "Строка: " << str_for_print;
-	switch (status)
+	/*switch (status)
 	{
 	case REGULAR_LINE:
 		cout << " Правило: " << char(rule_num.fir_num + 224) << rule_num.sec_num + 1 << " REGULAR_LINE" << endl;
@@ -155,6 +155,32 @@ void LtoR_Line_u::PrintLine()
 		break;
 	case NOT_PARSED_END:
 		cout << " Разбор невозможен " << " NOT_PARSED_END" << endl;
+		break;
+	default:
+		break;
+	}*/
+	switch (status)
+	{
+	case REGULAR_LINE:
+		cout << endl << " Правило: " << char(rule_num.fir_num + 224) << rule_num.sec_num + 1 ;
+		break;
+	case REG_FURTHER_DEAD_END:
+		cout << endl << " Правило: " << char(rule_num.fir_num + 224) << rule_num.sec_num + 1 ;
+		break;
+	case DEAD_END_BRANCH:
+		cout << endl << " Тупиковая ветвь!";
+		break;
+	case DEAD_END_BRANCH_VIEWED:
+		cout << endl << " Известная тупиковая ветвь";
+		break;
+	case DEAD_END:
+		cout << endl << " Тупик ";
+		break;
+	case PARSED_END:
+		cout << endl << " Конец ";
+		break;
+	case NOT_PARSED_END:
+		cout << endl << " Разбор невозможен ";
 		break;
 	default:
 		break;

@@ -121,23 +121,105 @@ void LtoR_MethodAlg_u::SetRulesOfAlg(unsigned code_of_rules) {
 
 		rules.push_back(ItemRule(c_operand, buf_str));
 
-		//----------------------------------------------------
+		
+	}
+	else if (code_of_rules == 1) { // <ЛВыражение>
+		ItemSymb c_logex("<ЛВыражение>", false, true);
+		ItemSymb c_intersection("<Пересечение>", false);
+		ItemSymb c_operand("<Операнд>", false);
+		ItemSymb c_and("^");
+		ItemSymb c_or("v");
+		ItemSymb c_left("(");
+		ItemSymb c_right(")");
+		ItemSymb c_id("<Ид>");
 
-		max_quantity = FindMaxQuantity();
+		vector<ItemSymb> buf_symb;
+		vector<ItemString> buf_str;
 
-		cout << endl << "Правила для разбора слева направо сформированы:" << endl << endl;
-		for (unsigned i = 0; i < rules.size(); i++) {
-			rules[i].PrintRule();
-			cout << endl;
-		}
+		buf_str.clear();
+		buf_symb = { c_logex, c_or, c_intersection };
+		buf_str.push_back(buf_symb);
+		buf_symb = { c_intersection };
+		buf_str.push_back(buf_symb);
 
-		non_collapsible_axiom = DefineAxiomCollapsibility();
-		if (non_collapsible_axiom) {
-			cout << endl << "Несворачиваемая аксиома" << endl;
-		}
-		else {
-			cout << endl << "Сворачиваемая аксиома" << endl;
-		}
+		rules.push_back(ItemRule(c_logex, buf_str));
+
+		buf_str.clear();
+		buf_symb = { c_intersection, c_and, c_operand };
+		buf_str.push_back(buf_symb);
+		buf_symb = { c_operand };
+		buf_str.push_back(buf_symb);
+
+		rules.push_back(ItemRule(c_intersection, buf_str));
+
+		buf_str.clear();
+		buf_symb = { c_left, c_logex, c_right };
+		buf_str.push_back(buf_symb);
+		buf_symb = { c_id };
+		buf_str.push_back(buf_symb);
+
+		rules.push_back(ItemRule(c_operand, buf_str));
+	}
+	else if (code_of_rules == 2) { // <Оператор W> Pascal
+		ItemSymb c_ax("<Оператор W>", false, true);
+		ItemSymb c_operator("<Оператор>", false);
+		ItemSymb c_sost_operator("<Составной оператор>", false);
+		ItemSymb c_operatory("<Операторы>", false);
+		ItemSymb c_tz(";");
+		ItemSymb c_uslovie("<Условие>");
+		ItemSymb c_prisv("<Присваивание>");
+
+		vector<ItemSymb> buf_symb;
+		vector<ItemString> buf_str;
+
+		buf_str.clear();
+		buf_symb = { c_ax };
+		buf_str.push_back(buf_symb);
+		buf_symb = { c_prisv };
+		buf_str.push_back(buf_symb);
+		buf_symb = { c_sost_operator };
+		buf_str.push_back(buf_symb);
+
+		rules.push_back(ItemRule(c_operator, buf_str));
+
+		buf_str.clear();
+		buf_symb = { ItemSymb(string("w")), ItemSymb(string("h")), ItemSymb(string("i")), ItemSymb(string("l")), ItemSymb(string("e")), ItemSymb(string(" ")),
+					c_uslovie, ItemSymb(string(" ")), ItemSymb(string("d")), ItemSymb(string("o")), ItemSymb(string(" ")), c_operator };
+		buf_str.push_back(buf_symb);
+
+		rules.push_back(ItemRule(c_ax, buf_str));
+
+		buf_str.clear();
+		buf_symb = { ItemSymb(string("b")), ItemSymb(string("e")), ItemSymb(string("g")), ItemSymb(string("i")), ItemSymb(string("n")), ItemSymb(string(" ")),
+					c_operatory, ItemSymb(string(" ")), ItemSymb(string("e")), ItemSymb(string("n")), ItemSymb(string("d")), };
+		buf_str.push_back(buf_symb);
+
+		rules.push_back(ItemRule(c_sost_operator, buf_str));
+
+		buf_str.clear();
+		buf_symb = { c_operatory, c_tz, ItemSymb(string(" ")), c_operator };
+		buf_str.push_back(buf_symb);
+		buf_symb = { c_operator };
+		buf_str.push_back(buf_symb);
+
+		rules.push_back(ItemRule(c_operatory, buf_str));
+	}
+	
+
+	max_quantity = FindMaxQuantity();
+
+	cout << endl << "Правила для разбора слева направо сформированы:" << endl << endl;
+	for (unsigned i = 0; i < rules.size(); i++) {
+		rules[i].PrintRule();
+		cout << endl;
+	}
+
+	non_collapsible_axiom = DefineAxiomCollapsibility();
+	if (non_collapsible_axiom) {
+		cout << endl << "Несворачиваемая аксиома" << endl;
+	}
+	else {
+		cout << endl << "Сворачиваемая аксиома" << endl;
 	}
 }
 
@@ -796,7 +878,15 @@ bool LtoR_MethodAlg_u::DoParse()
 						AddStepToDeadendStepsList();
 					}
 					else {
-						WriteToLog(rule, TypeOfLtoRLine::DEAD_END);
+						if (ParsingIsOnRollbackBranch()) {
+							WriteToLog(rule, TypeOfLtoRLine::DEAD_END_BRANCH, rollback_step);
+							MarkDeadendBranch(rollback_step);
+							AddStepToDeadendStepsList();
+						}
+						else {
+							WriteToLog(rule, TypeOfLtoRLine::DEAD_END);
+						}
+						//AddStepToDeadendStepsList();
 					}
 					rollback_step = CheckForRollback();
 					if (RollbackIsPossible()) { // есть возможность возврата
