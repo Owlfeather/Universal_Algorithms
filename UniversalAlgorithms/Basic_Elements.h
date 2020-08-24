@@ -21,6 +21,7 @@ public:
 
 	ItemSymb(): term(true), content(""), axiom(false) {}		// по умолчанию создаётся терминал (символы)
 	ItemSymb(const string inp_cont, bool inp_term = true, bool inp_axiom = false) : content(inp_cont), term(inp_term), axiom(inp_axiom)  {}
+	ItemSymb(const char inp_cont, bool inp_term = true, bool inp_axiom = false) : content({ inp_cont }), term(inp_term), axiom(inp_axiom) {}
 
 	bool IsTerm() const { return term; }
 	bool IsAxiom() const { return axiom; }

@@ -366,15 +366,9 @@ ResultOfStringReceiving LtoR_MethodAlg_u::SetParsingStr(string inp_str, bool con
 			if (next_state == 2) {
 				complex_terminal.clear();
 			}
-			//if (((current_state == 1) && (next_state == 0))
-			//	|| ((current_state == 4) && (next_state == 3))) {
-			//	if (working_str[i - 1] == '$') {
-			//		//working_str[i] = '&';
-			//	}
-			//}
 			if (((current_state == 0) && (next_state == 0)) 
 				|| ((current_state == 1 ) && (next_state == 0))) {
-				AddSymbToParsingStr(working_str[i]);
+				parsing_str.AddSymb(working_str[i]);
 			}
 			if (next_state == 3) {
 				complex_terminal.push_back(working_str[i]);

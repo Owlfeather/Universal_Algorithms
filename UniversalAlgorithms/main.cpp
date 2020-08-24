@@ -17,7 +17,7 @@ int main() {
 	//string input_str = "while <Условие> do begin while <Условие> do <Присваивание>; <Присваивание> end";
 	//string input_str = "(<Ид>v<Ид>)^(<Ид>v<Ид>)";
 
-	string input_str = "--5";
+	string input_str = "-5";
 	//string input_str = "d+c*(a+b)";
 	//string input_str = "(Udh-(hdhdh*(((tuh)))))";
 
