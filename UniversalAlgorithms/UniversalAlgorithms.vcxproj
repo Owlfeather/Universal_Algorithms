@@ -141,6 +141,8 @@
   <ItemGroup>
     <ClInclude Include="Algorithm_LtoR.h" />
     <ClInclude Include="Algorithm_LtoR_u.h" />
+    <ClInclude Include="Algorithm_TtoD.h" />
+    <ClInclude Include="Algorithm_TtoD_u.h" />
     <ClInclude Include="Alg_Elements.h" />
     <ClInclude Include="Basic_Algorithm.h" />
     <ClInclude Include="Basic_Elements.h" />
@@ -150,6 +152,8 @@
   <ItemGroup>
     <ClCompile Include="Algorithm_LtoR.cpp" />
     <ClCompile Include="Algorithm_LtoR_u.cpp" />
+    <ClCompile Include="Algorithm_TtoD.cpp" />
+    <ClCompile Include="Algorithm_TtoD_u.cpp" />
     <ClCompile Include="Alg_Elements.cpp" />
     <ClCompile Include="Basic_Algorithm.cpp" />
     <ClCompile Include="Basic_Elements.cpp" />

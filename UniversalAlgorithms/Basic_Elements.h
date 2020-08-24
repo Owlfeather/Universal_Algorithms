@@ -129,7 +129,7 @@ enum TypeOfLtoRLine
 	NOT_PARSED_END
 };
 
-enum TypeOfTtoDLine
+enum  TypeOfTtoDLine
 {
 	STATEMENT,
 	ROLLB_POSS,
@@ -137,7 +137,15 @@ enum TypeOfTtoDLine
 	RULE_NOT_FIT,
 	RULE_FIT,
 	END_LINE,
-	WRONG_SYMB
+	WRONG_SYMB,
+
+	/// new:
+	HYPOTHESIS,
+	WRONG_HYPO,
+	MISTAKE,
+	RECOGNIZED,
+	PARSED_END_TtoD,
+	NOT_PARSED_END_TtoD
 };
 
 enum TypeOfRelation

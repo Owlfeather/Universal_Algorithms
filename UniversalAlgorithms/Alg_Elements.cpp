@@ -395,6 +395,96 @@ string TtoD_Line::MakePrintable(string & str_with_seps)
 	return str_for_print;
 }
 
+//---------------------TtoD_u_Line---------------------
+
+TypeOfAlg TtoD_Line_u::GetType()
+{
+	return TypeOfAlg::TTOD;
+}
+
+void TtoD_Line_u::SetLine(const string& inp_rec_str, const RuleNum& inp_rnum, const string& inp_pars_str, const string& inp_targ_str, TypeOfTtoDLine inp_status, const int inp_source_s)
+{
+	cur_string = inp_pars_str;
+	rule_num = inp_rnum;
+	recognized_string = inp_rec_str;
+	target_string = inp_targ_str;
+	status = inp_status;
+	source_step = inp_source_s;
+}
+
+void TtoD_Line_u::PrintLine()
+{
+	cout << endl << "Распознано: " << MakePrintable(recognized_string);
+	cout << " Строка: " << MakePrintable(cur_string);
+	cout << " Цель: " << MakePrintable(target_string);
+	cout << endl;
+
+	switch (status)
+	{
+	case TypeOfTtoDLine::HYPOTHESIS:
+		cout << rule_num.GetPrintable() << " HYPOTHESIS " << "SOURCE_STEP = " << source_step << endl;
+		break;
+	case TypeOfTtoDLine::WRONG_HYPO:
+		cout << rule_num.GetPrintable() << " WRONG_HYPO " << "SOURCE_STEP = " << source_step << endl;
+		break;
+	case TypeOfTtoDLine::MISTAKE:
+		cout << rule_num.GetPrintable() << " MISTAKE " << "SOURCE_STEP = " << source_step << endl;
+		break;
+	case TypeOfTtoDLine::RECOGNIZED:
+		cout << rule_num.GetPrintable() << " RECOGNIZED " << "SOURCE_STEP = " << source_step << endl;
+		break;
+	case TypeOfTtoDLine::PARSED_END_TtoD:
+		cout << rule_num.GetPrintable() << " PARSED_END " << "SOURCE_STEP = " << source_step << endl;
+		break;
+	case TypeOfTtoDLine::NOT_PARSED_END_TtoD:
+		cout << rule_num.GetPrintable() << " NOT_PARSED_END " << "SOURCE_STEP = " << source_step << endl;
+		break;
+	}
+}
+
+vector<string> TtoD_Line_u::GetLine()
+{
+	vector<string> line;
+	line.push_back(MakePrintable(recognized_string));
+	line.push_back(MakePrintable(cur_string));
+	line.push_back(MakePrintable(target_string));
+
+	switch (status)
+	{
+	case TypeOfTtoDLine::HYPOTHESIS:
+		line.push_back("?");
+		break;
+	case TypeOfTtoDLine::WRONG_HYPO:
+		line.push_back("?");
+		break;
+	case TypeOfTtoDLine::MISTAKE:
+		line.push_back(char(rule_num.fir_num + 224) + to_string(rule_num.sec_num + 1) + " - нет");
+		break;
+	case TypeOfTtoDLine::RECOGNIZED:
+		line.push_back(char(rule_num.fir_num + 224) + to_string(rule_num.sec_num + 1) + " - да");
+		break;
+	case TypeOfTtoDLine::PARSED_END_TtoD:
+		line.push_back("Разбор завершён");
+		break;
+	case TypeOfTtoDLine::NOT_PARSED_END_TtoD:
+		line.push_back("Разбор дальше невозможен!");
+		break;
+	}
+
+	return line;
+}
+
+string TtoD_Line_u::MakePrintable(string& str_with_seps)
+{
+	string str_for_print;
+	for (int i = 0; i < str_with_seps.size(); i++) {
+		if (str_with_seps[i] != '\n') {
+			str_for_print += str_with_seps[i];
+		}
+	}
+	return str_for_print;
+}
+
 
 //---------------------LLk_TtoD_Line---------------------
 
@@ -616,4 +706,5 @@ void LRk_Stack_Line::PrintLine()
 	cout << endl;
 
 }
+
 

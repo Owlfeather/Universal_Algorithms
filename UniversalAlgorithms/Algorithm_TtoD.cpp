@@ -163,7 +163,7 @@ bool TtoD_MethodAlg::DoParse()
 						cout << "\nБольше откат выполнить невозможно" << endl;
 
 						comment_line = "Больше откат выполнить невозможно\nРазбор завершён";
-						comments_model->AddRecordLine(comment_line, TypeOfComment::PARSE_INCORRECT);
+						//comments_model->AddRecordLine(comment_line, TypeOfComment::PARSE_INCORRECT);
 
 
 						okey = false;
@@ -179,7 +179,7 @@ bool TtoD_MethodAlg::DoParse()
 					cout << "Ошибка, разбор дальше невозможен" << endl;
 
 					comment_line = "Ошибка, разбор дальше невозможен";
-					comments_model->AddRecordLine(comment_line, TypeOfComment::PARSE_INCORRECT);
+					//comments_model->AddRecordLine(comment_line, TypeOfComment::PARSE_INCORRECT);
 
 					okey = false;
 					/////// сделать корректную запись
@@ -206,7 +206,7 @@ bool TtoD_MethodAlg::DoParse()
 					cout << "\nБольше откат выполнить невозможно" << endl;
 
 					comment_line = "Больше откат выполнить невозможно\nРазбор завершён";
-					comments_model->AddRecordLine(comment_line, TypeOfComment::PARSE_INCORRECT);
+					//comments_model->AddRecordLine(comment_line, TypeOfComment::PARSE_INCORRECT);
 
 					WriteToLog(2, TypeOfTtoDLine::WRONG_SYMB, next_rule);
 
@@ -218,7 +218,7 @@ bool TtoD_MethodAlg::DoParse()
 					cout << "\nРазбор завершён успешно" << endl;
 
 					comment_line = "Разбор завершён успешно";
-					comments_model->AddRecordLine(comment_line, TypeOfComment::PARSE_CORRECT);
+					//comments_model->AddRecordLine(comment_line, TypeOfComment::PARSE_CORRECT);
 
 					dynamic_cast<TtoD_Line*>(parsing_log[parsing_log.Size() - 1])->MarkLastLine();
 
@@ -254,7 +254,7 @@ RuleNum TtoD_MethodAlg::FindRuleNum() // используется для пои�
 	comment_line = "____________________________________\nПроизводится поиск подходящего раскрытия правила: \n";
 	comment_line += string(target_str[0]);
 	//comment_line += "\nИскомая конструкция: " + string(parsing_item);
-	comments_model->AddRecordLine(comment_line, TypeOfComment::INFO);
+	//comments_model->AddRecordLine(comment_line, TypeOfComment::INFO);
 
 	int rules_number = rules.size();
 	for (int i = 0; i < rules_number; i++) {
@@ -265,7 +265,7 @@ RuleNum TtoD_MethodAlg::FindRuleNum() // используется для пои�
 			if (i < 2) {
 				comment_line.clear();
 				comment_line = "   Пробуем правило " + to_string((i + 1)) + "a ";
-				comments_model->AddRecordLine(comment_line, TypeOfComment::HYPOTHESIS, { i, 0 });
+				//comments_model->AddRecordLine(comment_line, TypeOfComment::HYPOTHESIS, { i, 0 });
 				comment_line.clear();
 			}
 
@@ -292,7 +292,7 @@ bool TtoD_MethodAlg::FindCorrectTerm(const RuleNum & rulenum)
 				for(int j = 0; j < i; j++) {
 				comment_line.clear();
 				comment_line = "   Правило " + to_string(rulenum.fir_num + 1) + (char(j + 224)) + " не подошло";
-				comments_model->AddRecordLine(comment_line, TypeOfComment::WRONG_RULE, { rulenum.fir_num, j });
+				//comments_model->AddRecordLine(comment_line, TypeOfComment::WRONG_RULE, { rulenum.fir_num, j });
 				comment_line.clear();
 				}
 
@@ -306,7 +306,7 @@ bool TtoD_MethodAlg::FindCorrectTerm(const RuleNum & rulenum)
 
 			comment_line.clear();
 			comment_line = "   Правило " + to_string(rulenum.fir_num + 1) + (char(i + 224)) + " подошло";
-			comments_model->AddRecordLine(comment_line, TypeOfComment::CORRECT_RULE, { rulenum.fir_num , i });
+			//comments_model->AddRecordLine(comment_line, TypeOfComment::CORRECT_RULE, { rulenum.fir_num , i });
 			comment_line.clear();
 
 			RemoveMatchingSymbs();
@@ -326,7 +326,7 @@ bool TtoD_MethodAlg::FindCorrectTerm(const RuleNum & rulenum)
 	for (int j = 0; j < rules[rulenum.fir_num].RightSize(); j++) {
 		comment_line.clear();
 		comment_line = "   Правило " + to_string(rulenum.fir_num + 1) + (char(j + 224)) + " не подошло";
-		comments_model->AddRecordLine(comment_line, TypeOfComment::WRONG_RULE, { rulenum.fir_num, j });
+		//comments_model->AddRecordLine(comment_line, TypeOfComment::WRONG_RULE, { rulenum.fir_num, j });
 		comment_line.clear();
 	}
 																							//если не удалось - нужен откат
@@ -350,7 +350,7 @@ void TtoD_MethodAlg::RemoveMatchingSymbs()
 	comment_line += "   Разбираемая строка: \n   ";
 	comment_line += string(parsing_str);
 	comment_line += "\n   Строка-цель:\n   " + string(target_str);
-	comments_model->AddRecordLine(comment_line, TypeOfComment::INFO);
+	//comments_model->AddRecordLine(comment_line, TypeOfComment::INFO);
 	comment_line.clear();
 
 }
@@ -384,7 +384,7 @@ void TtoD_MethodAlg::TransformAccordingRule(const RuleNum & rulenum)
 		comment_line.clear();
 	}
 	else {
-		comments_model->AddRecordLine(comment_line, TypeOfComment::HYPOTHESIS);
+		//comments_model->AddRecordLine(comment_line, TypeOfComment::HYPOTHESIS);
 	}
 	//comments_model->AddRecordLine(comment_line, TypeOfComment::INFO);
 }
@@ -494,13 +494,13 @@ RuleNum TtoD_MethodAlg::Rollback()
 		comment_line.clear();
 		comment_line = "   Тупиковая ситуация, необходим откат назад\n";
 		comment_line += "   Производится откат к позиции " + to_string(required_ind) + " разбора";
-		comments_model->AddRecordLine(comment_line, TypeOfComment::DEAD_END);
+		//comments_model->AddRecordLine(comment_line, TypeOfComment::DEAD_END);
 		comment_line.clear();
 
 		comment_line = "\n   Восстановленная строка распознанного:\n   " + string(recognized_str);
 		comment_line += "\n   Восстановленная строка разбора:\n   " + string(parsing_str);
 		comment_line += "\n   Восстановленная строка цели:\n   " + string(target_str);
-		comments_model->AddRecordLine(comment_line, TypeOfComment::INFO);
+		//comments_model->AddRecordLine(comment_line, TypeOfComment::INFO);
 		comment_line.clear();
 
 
@@ -511,7 +511,7 @@ RuleNum TtoD_MethodAlg::Rollback()
 
 		comment_line.clear();
 		comment_line = "   Пробуем правило " + to_string((next_rule.fir_num + 1)) + "б ";
-		comments_model->AddRecordLine(comment_line, TypeOfComment::HYPOTHESIS, { next_rule.fir_num, 1 });
+		//comments_model->AddRecordLine(comment_line, TypeOfComment::HYPOTHESIS, { next_rule.fir_num, 1 });
 		comment_line.clear();
 
 
@@ -581,7 +581,7 @@ void TtoD_MethodAlg::WriteToLog(const unsigned& type, const TypeOfTtoDLine& line
 
 	buf_line->SetLine(rec_str, pars_str, targ_str, type, sp_type, cur_rule_num);
 	parsing_log.AddRecordLine(buf_line);
-	table_model->AppendLine(buf_line);
+	//table_model->AppendLine(buf_line);
 
 }
 

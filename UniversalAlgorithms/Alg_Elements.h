@@ -40,6 +40,13 @@ struct RuleNum {
 	int sec_num; 
 
 	bool IsFound() { return ((fir_num > -1) and (sec_num > -1)); }
+
+	string GetPrintable() {
+		string str_rule;
+		str_rule = "Правило: " + char(fir_num + 224) + to_string(sec_num + 1);
+		return str_rule;
+	}
+
 	bool operator == (const RuleNum& other_rule) const {
 		return this->fir_num == other_rule.fir_num && this->sec_num == other_rule.sec_num;
 	}
@@ -142,6 +149,7 @@ public:
 	}
 };
 
+//-----------------------------------------------------------------
 
 class TtoD_Line : public RecordLine {
 
@@ -168,6 +176,42 @@ public:
 	string GetRecString() { return recognized; }
 	string GetTargString() { return target; }
 	TypeOfTtoDLine& GetTypeOfLine() { return type_of_line; }
+};
+//-----------------------------------------------------------------
+class TtoD_Line_u : public RecordLine {
+
+	string recognized_string;
+	string target_string;
+	TypeOfTtoDLine status;
+	int source_step;
+
+	//cur_string
+	//rule_num
+
+public:
+
+	TypeOfAlg GetType() override;
+
+	void SetLine(const string& inp_rec_str, const RuleNum& inp_rnum,
+		const string& inp_pars_str,
+		const string& inp_targ_str,
+		TypeOfTtoDLine inp_status = TypeOfTtoDLine::HYPOTHESIS,
+		const int inp_source_s = -1);
+
+	void PrintLine() override;
+	vector<string>  GetLine() override;
+
+	string GetRecString() { return recognized_string; }
+	string GetTargString() { return target_string; }
+	TypeOfTtoDLine GetStatus() { return status; }
+	const int GetSourceStep() { return source_step; }
+
+	bool HasSource() { return (source_step != -1); }
+
+	void MarkAsWrongHypo() { status = TypeOfTtoDLine::WRONG_HYPO; }
+	void MarkAsNotParsedEnd() { status = TypeOfTtoDLine::NOT_PARSED_END_TtoD; }
+
+	string MakePrintable(string& str_with_seps);
 };
 
 //-----------------------------------------------------------------
