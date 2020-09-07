@@ -265,6 +265,15 @@ void ParseLog::PrintLogTtoD()
 	}
 }
 
+void ParseLog::PrintLogTtoD_u()
+{
+	cout << endl << endl << "Лог:" << endl;
+	for (int i = 0; i < records.size(); i++) {
+		cout << i << ")";
+		dynamic_cast<TtoD_Line_u*>(records[i])->PrintLine();
+	}
+}
+
 void ParseLog::PrintLogLLk()
 {
 	cout << endl << endl << "Лог:" << endl;

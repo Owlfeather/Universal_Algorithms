@@ -142,6 +142,7 @@ enum  TypeOfTtoDLine
 	/// new:
 	HYPOTHESIS,
 	WRONG_HYPO,
+	LAST_HYPO,
 	MISTAKE,
 	RECOGNIZED,
 	PARSED_END_TtoD,

@@ -127,7 +127,120 @@ ResultOfStringReceiving TtoD_MethodAlg_u::SetParsingStr(string inp_str, bool con
 	}
 }
 
-void TtoD_MethodAlg_u::WriteToLog(const RuleNum cur_rule_num, 
+void TtoD_MethodAlg_u::SetStartTarget()
+{
+	for (ItemRule rule : rules) {
+		if (rule.GetLeft().IsAxiom()) {
+			target_str = { rule.GetLeft() };
+			return;
+		}
+	}
+}
+
+bool TtoD_MethodAlg_u::NonTerminalLeftInTarget()
+{
+	if (target_str[0].IsTerm()) {
+		return false;
+	}
+	else {
+		return true;
+	}
+}
+
+RuleNum TtoD_MethodAlg_u::FindSuitableRule(const RuleNum rulenum)
+{
+	if (rulenum == RuleNum{0, -1}) {
+		ItemSymb nonterminal = target_str[0];
+		for (int i = 0; i < rules.size(); i++) {
+			if (nonterminal == rules[i].GetLeft()) {
+				return RuleNum{ i, 0 };
+			}
+			else {
+				return RuleNum{ -1, -1 };
+			}
+		}
+	}
+	else {
+		if (rulenum.sec_num < rules[rulenum.fir_num].RightSize() - 1) {
+			return RuleNum{ rulenum.fir_num, rulenum.sec_num + 1 };
+		}
+		else {
+			return RuleNum{ -1, -1 };
+		}
+	}
+
+}
+
+void TtoD_MethodAlg_u::TransformAccordingRule(const RuleNum& rule)
+{
+	ItemString option_str = rules[rule.fir_num][rule.sec_num];
+	target_str.DeleteSymb(0, 1);
+	for (int i = option_str.Length() - 1; i > -1; i--) {
+		target_str.AddSymb(option_str[i], 0);
+	}
+}
+
+bool TtoD_MethodAlg_u::RuleIsLastPossible(const RuleNum& rule)
+{
+	if (rule.sec_num == rules[rule.fir_num].RightSize() - 1) {
+		return true;
+	}
+	else {
+		return false;
+	}
+}
+
+void TtoD_MethodAlg_u::MarkSourceStepAsWrongHypo()
+{
+	dynamic_cast<TtoD_Line_u*>(parsing_log[rollback_step])->MarkAsWrongHypo();
+}
+
+bool TtoD_MethodAlg_u::TerminalsMatched()
+{
+	if (ParsingStrIsEmpty()) {
+		return false;
+	} 
+	else {
+		if (parsing_str[0] == target_str[0]) {
+			return true;
+		}
+		else {
+			return false;
+		}
+	}
+}
+
+void TtoD_MethodAlg_u::RecognizeAndClearTerminals()
+{
+	recognized_str.AddSymb(parsing_str[0]);
+	parsing_str.DeleteSymb(0, 1);
+	target_str.DeleteSymb(0, 1);
+}
+
+int TtoD_MethodAlg_u::CheckForRollback()
+{
+	int i = parsing_log.Size() - 1;
+	while (i > -1) {
+		if (dynamic_cast<TtoD_Line_u*>(parsing_log[i])->GetStatus() == TypeOfTtoDLine::HYPOTHESIS) {
+			return i;
+		}
+		i--;
+	}
+	return -1;
+}
+
+RuleNum TtoD_MethodAlg_u::RollbackAndGetCurRule()
+{
+	TtoD_Line_u source_step = *dynamic_cast<TtoD_Line_u*>(parsing_log[rollback_step]);
+
+	recognized_str = RestoreStringFromLog(source_step.GetRecString());
+	parsing_str = RestoreStringFromLog(source_step.GetCurString());
+	target_str = RestoreStringFromLog(source_step.GetTargString());
+
+	return (source_step.GetRuleNum());
+}
+
+void TtoD_MethodAlg_u::WriteToLog(const RuleNum cur_rule_num,
 	const TypeOfTtoDLine inp_status, const int inp_source_s)
 {
 	TtoD_Line_u* buf_line;
@@ -180,7 +293,105 @@ string TtoD_MethodAlg_u::MakeStrForLog(ItemString& orig_str)
 	return str_with_separators;
 }
 
+void TtoD_MethodAlg_u::MarkLastStepInLogAs(TypeOfTtoDLine mark_status)
+{
+	switch (mark_status)
+	{
+	case HYPOTHESIS:
+		break;
+	case WRONG_HYPO:
+		break;
+	case LAST_HYPO:
+		break;
+	case MISTAKE:
+		break;
+	case RECOGNIZED:
+		break;
+	case PARSED_END_TtoD:
+		break;
+	case NOT_PARSED_END_TtoD:
+		dynamic_cast<TtoD_Line_u*>(parsing_log[parsing_log.Size() - 1])->MarkAsNotParsedEnd();
+		break;
+	}
+}
+
 bool TtoD_MethodAlg_u::DoParse()
 {
+	bool parsing_is_over = false;
+	ClearRollbackFlag();
+	SetStartTarget();
+	RuleNum next_rule = { 0, -1 },
+			rule;
+
+
+	while (!parsing_is_over) {
+		if (TargetStrIsEmpty()) {
+			if ((ParsingStrIsEmpty()) && (TargetStrIsEmpty())) {
+				WriteToLog(rule, TypeOfTtoDLine::PARSED_END_TtoD);
+				parsing_is_over = true;
+			}
+			else {
+				WriteToLog(rule, TypeOfTtoDLine::MISTAKE);
+				rollback_step = CheckForRollback();
+				if (RollbackIsPossible()) {
+					SetRollbackFlag();
+					next_rule = RollbackAndGetCurRule();
+				}
+				else {
+					MarkLastStepInLogAs(TypeOfTtoDLine::NOT_PARSED_END_TtoD);
+					parsing_is_over = true;
+				}
+			}
+		}
+		else {
+			if (NonTerminalLeftInTarget()) {
+				rule = FindSuitableRule(next_rule);
+				if (rule.IsFound()) {
+					if (ParsingIsOnRollbackBranch()) {
+						WriteToLog(rule, HYPOTHESIS, rollback_step);
+						if (RuleIsLastPossible(rule)) {
+							WriteToLog(rule, TypeOfTtoDLine::LAST_HYPO, rollback_step);
+						}
+						else {
+							WriteToLog(rule, HYPOTHESIS, rollback_step);
+						}
+						MarkSourceStepAsWrongHypo();
+						ClearRollbackFlag();
+					}
+					else {
+						WriteToLog(rule);
+					}
+					TransformAccordingRule(rule);
+				}
+			}
+			else { // ÒÎÂ‚‡ ÚÂÏËÌ‡Î
+				if (TerminalsMatched()) {
+					WriteToLog(rule, TypeOfTtoDLine::RECOGNIZED);
+					RecognizeAndClearTerminals();
+					ClearRollbackFlag();
+				}
+				else {
+					WriteToLog(rule, TypeOfTtoDLine::MISTAKE);
+					rollback_step = CheckForRollback();
+					if (RollbackIsPossible()) {
+						SetRollbackFlag();
+						next_rule = RollbackAndGetCurRule();
+					}
+					else {
+						MarkLastStepInLogAs(TypeOfTtoDLine::NOT_PARSED_END_TtoD);
+						parsing_is_over = true;
+					}
+				}
+			}
+		}
+		if (!ParsingIsOnRollbackBranch()) {
+			next_rule = { 0, -1 };
+		}
+	}
+
+	cout << endl << "***–¿«Ã≈–_ÀŒ√¿=" << parsing_log.Size();
+
+	parsing_log.PrintLogTtoD_u();
+
 	return false;
 }

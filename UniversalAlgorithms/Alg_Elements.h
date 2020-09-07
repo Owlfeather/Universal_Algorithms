@@ -280,6 +280,7 @@ public:
 	void PrintLogLtoR();
 	void PrintLogLtoR_u();
 	void PrintLogTtoD();
+	void PrintLogTtoD_u();
 	void PrintLogLLk();
 
 	void ClearRecords() { records.clear(); }
